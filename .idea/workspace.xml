@@ -24,12 +24,75 @@
     &quot;assignee&quot;: &quot;ike005&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/ike005/hackathon-mentor-bot.git",
-    "accountId": "d213d205-7c54-45d5-ab44-f6527d46c382"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/ike005/hackathon-mentor-bot.git&quot;,
+    &quot;accountId&quot;: &quot;d213d205-7c54-45d5-ab44-f6527d46c382&quot;
   }
-}]]></component>
+}</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="4.4516493478943177E-10" />
+      <entry key="MS500" value="0.03683641120278745" />
+      <entry key="S2" value="1.232857140586054" />
+      <entry key="S5" value="2.497057812154683" />
+      <entry key="S10" value="3.160208313636716" />
+      <entry key="S30" value="3.697761493611187" />
+      <entry key="S60" value="3.845905888072766" />
+      <entry key="M2" value="3.9221944813494773" />
+      <entry key="M5" value="3.968693839969514" />
+      <entry key="M10" value="3.9843160996670943" />
+      <entry key="M15" value="3.9895372054668043" />
+      <entry key="M30" value="3.994765169234874" />
+      <entry key="H1" value="3.997381725678045" />
+      <entry key="H2" value="3.9986906480335387" />
+      <entry key="H4" value="3.9993452703065664" />
+      <entry key="D1" value="3.9998908709239274" />
+      <entry key="W1" value="3.999984409949274" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.0" />
+      <entry key="S5" value="1.0" />
+      <entry key="S10" value="1.0" />
+      <entry key="S30" value="1.0" />
+      <entry key="S60" value="1.0" />
+      <entry key="M2" value="1.0" />
+      <entry key="M5" value="1.0" />
+      <entry key="M10" value="1.0" />
+      <entry key="M15" value="1.0" />
+      <entry key="M30" value="1.0" />
+      <entry key="H1" value="1.0" />
+      <entry key="H2" value="1.0" />
+      <entry key="H4" value="1.0" />
+      <entry key="D1" value="1.0" />
+      <entry key="W1" value="1.0" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="0.0024381460298604322" />
+      <entry key="MS500" value="0.33609230006956076" />
+      <entry key="S2" value="1.9632071545255048" />
+      <entry key="S5" value="3.3753537210597586" />
+      <entry key="S10" value="4.096470851121934" />
+      <entry key="S30" value="4.675801429283545" />
+      <entry key="S60" value="4.8348313781602865" />
+      <entry key="M2" value="4.916633190573244" />
+      <entry key="M5" value="4.966463500584783" />
+      <entry key="M10" value="4.983199954872428" />
+      <entry key="M15" value="4.988792891905827" />
+      <entry key="M30" value="4.99439290385316" />
+      <entry key="H1" value="4.997195565820811" />
+      <entry key="H2" value="4.998597561311318" />
+      <entry key="H4" value="4.999298725246804" />
+      <entry key="D1" value="4.999883113178022" />
+      <entry key="W1" value="4.999983301694081" />
+    </decayedShown>
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
 }</component>
@@ -42,6 +105,7 @@
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python.test_bot.executor": "Run",
+    "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "ignore.virus.scanning.warn.message": "true",
