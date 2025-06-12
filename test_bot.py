@@ -19,6 +19,7 @@ intents.message_content = True
 intents.members = True
 
 bot = commands.Bot(command_prefix='$', intents=intents)
+GUILD_ID = discord.Object(id=1308947389159182476)
 
 scheduler = AsyncIOScheduler()
 
@@ -28,6 +29,12 @@ async def on_ready():
     print(f'Logged in as {bot.user}')
     # if not send_scheduled_messages.is_running():
     #     send_scheduled_messages.start()
+    try:
+        synced = await bot.tree.sync(guild=GUILD_ID)
+        print(f"Synced {len(synced)} command(s).")
+    except Exception as e:
+        print(f"Failed to sync commands: {e}")
+
     scheduler.start()
 
 def get_user_or_role(ctx, identifier):
@@ -398,11 +405,8 @@ async def on_message(message):
     # needed to process other `bot.commands`
     await bot.process_commands(message)
 
-@bot.command(name='start')
-async def start(ctx):
-    await brainstormgame(ctx)
-
-async def brainstormgame(ctx):
+@bot.tree.command(name='start', description="Start a brainstorming session", guild=GUILD_ID)
+async def brainstormgame(interaction: discord.Interaction):
     interests = ["Space", "Cats", "Horror"]
     options_to_pick = ["Meow-tergeist – A haunted space station full of ghost cats.",
                        "CosmoCat Chronicles – You play as a telepathic space cat solving a cosmic horror mystery.",
@@ -415,10 +419,10 @@ async def brainstormgame(ctx):
         for index, option in enumerate(options_to_pick):
             options_text += f"{index + 1}. {option}\n"
 
-        await ctx.reply(f"Select two(2) options to remove: \n{options_text}")
+        await interaction.response.send_message(f"Select two(2) options to remove: \n{options_text}")
 
-        def check(m):
-            return m.author == ctx.author and m.channel == ctx.channel
+        def check(m: discord.Message):
+            return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
 
         msg = await bot.wait_for("message", check=check, timeout=30)
         choices = msg.content.split(",")
@@ -428,31 +432,28 @@ async def brainstormgame(ctx):
             if i.strip().isdigit():
                 selected.append(int(i.strip()))
             else:
-                await ctx.send("Please enter a digit")
+                await interaction.channel.send("Please enter a digit")
                 return
 
         if len(selected) != 2:
-            await ctx.send("Please select **exactly 2 valid options** from the list.")
+            await interaction.channel.send("Please select **exactly 2 valid options** from the list.")
 
         selected = [int(i.strip()) - 1 for i in choices]
         if any(i < 0 or i >= len(options_to_pick) for i in selected):
-            await ctx.send("Invalid selection. Please choose numbers from the list.")
+            await interaction.channel.send("Invalid selection. Please choose numbers from the list.")
             return
 
         selected.sort(reverse=True)
         for i in selected:
             del options_to_pick[i]
 
-        await ctx.reply(f"Removing options: {' and '.join(str(i + 1) for i in selected)}")
+        await interaction.channel.send(f"Removing options: {' and '.join(str(i + 1) for i in selected)}")
         # await ctx.reply(f"Selected options: \n" + "\n".join(str(i) for i in options_to_pick))
 
-        await ctx.reply(f"Final idea: {random.choice(options_to_pick)}")
-
-    except discord.errors.TimeoutError:
-        await ctx.send("You took too long to respond. Try again with `!start`.")
+        await interaction.followup.send(f"Final idea: {random.choice(options_to_pick)}")
 
     except Exception as e:
-        await ctx.send(f"Something went wrong: {e}")
+        await interaction.channel.send(f"Something went wrong: {e}")
 
         # 1308947389159182476
 bot.run(BOT_TOKEN)
