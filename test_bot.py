@@ -424,7 +424,7 @@ async def brainstormgame(interaction: discord.Interaction):
         def check(m: discord.Message):
             return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
 
-        msg = await bot.wait_for("message", check=check, timeout=30)
+        msg = await bot.wait_for("message", check=check, timeout=60)
         choices = msg.content.split(",")
 
         selected = []
