@@ -407,53 +407,84 @@ async def on_message(message):
 
 @bot.tree.command(name='start', description="Start a brainstorming session", guild=GUILD_ID)
 async def brainstormgame(interaction: discord.Interaction):
-    interests = ["Space", "Cats", "Horror"]
-    options_to_pick = ["Meow-tergeist – A haunted space station full of ghost cats.",
-                       "CosmoCat Chronicles – You play as a telepathic space cat solving a cosmic horror mystery.",
-                       "Litter-22 – A survival horror game in a derelict ship run by mutated felines.",
-                       "Whisker Void – Explore the abyss of space with your cat crew as unknown horrors lurk.",
-                       "Tabby Terror – Manage a space shelter where cats keep disappearing into the dark…"]
+    organizer_interests = ["Time Travel", "Space Colonization", "Underwater Exploration"]
+    users_interests = []
+    both_interests = organizer_interests + users_interests
 
+    # options_to_pick = ["Meow-tergeist – A haunted space station full of ghost cats.",
+    #                    "CosmoCat Chronicles – You play as a telepathic space cat solving a cosmic horror mystery.",
+    #                    "Litter-22 – A survival horror game in a derelict ship run by mutated felines.",
+    #                    "Whisker Void – Explore the abyss of space with your cat crew as unknown horrors lurk.",
+    #                    "Tabby Terror – Manage a space shelter where cats keep disappearing into the dark…"]
+
+    await interaction.response.send_message("Please enter 2-4 of your interests (Separated in comma): ")
+
+    def check(m: discord.Message):
+        return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
+
+    
     try:
-        options_text = ""
-        for index, option in enumerate(options_to_pick):
-            options_text += f"{index + 1}. {option}\n"
-
-        await interaction.response.send_message(f"Select two(2) options to remove: \n{options_text}")
-
-        def check(m: discord.Message):
-            return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
-
         msg = await bot.wait_for("message", check=check, timeout=60)
         choices = msg.content.split(",")
 
-        selected = []
-        for i in choices:
-            if i.strip().isdigit():
-                selected.append(int(i.strip()))
+        
+        for choice in choices:
+            if len(choices) !=4 or len(choices) < 0:
+                await interaction.channel.send("Please enter 2-4 of your interests (Separated in comma): ")
             else:
-                await interaction.channel.send("Please enter a digit")
-                return
+                users_interests.append(choice)
 
-        if len(selected) != 2:
-            await interaction.channel.send("Please select **exactly 2 valid options** from the list.")
+        users_random_interests = ramdom.sample(users_interests, 2)
+        organizers_random_interests = ramdom.sample(organizer_interests, 2)
 
-        selected = [int(i.strip()) - 1 for i in choices]
-        if any(i < 0 or i >= len(options_to_pick) for i in selected):
-            await interaction.channel.send("Invalid selection. Please choose numbers from the list.")
-            return
+        option_interests = organizers_random_interests + users_random_interests
 
-        selected.sort(reverse=True)
-        for i in selected:
-            del options_to_pick[i]
+        options_text = ""
+        for index, option in enumerate(option_interests):
+            options_text += f"{index + 1}. {option}\n"
 
-        await interaction.channel.send(f"Removing options: {' and '.join(str(i + 1) for i in selected)}")
-        # await ctx.reply(f"Selected options: \n" + "\n".join(str(i) for i in options_to_pick))
-
-        await interaction.followup.send(f"Final idea: {random.choice(options_to_pick)}")
+        await interaction.response.send_message(f"Select 2-3 options that interest you: \n{options_text}")
+        
+        
+    #     options_text = ""
+    #     for index, option in enumerate(options_to_pick):
+    #         options_text += f"{index + 1}. {option}\n"
+    #
+    #     await interaction.response.send_message(f"Select two(2) options to remove: \n{options_text}")
+    #
+    #     def check(m: discord.Message):
+    #         return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
+    #
+    #     msg = await bot.wait_for("message", check=check, timeout=60)
+    #     choices = msg.content.split(",")
+    #
+    #     selected = []
+    #     for i in choices:
+    #         if i.strip().isdigit():
+    #             selected.append(int(i.strip()))
+    #         else:
+    #             await interaction.channel.send("Please enter a digit")
+    #             return
+    #
+    #     if len(selected) != 2:
+    #         await interaction.channel.send("Please select **exactly 2 valid options** from the list.")
+    #
+    #     selected = [int(i.strip()) - 1 for i in choices]
+    #     if any(i < 0 or i >= len(options_to_pick) for i in selected):
+    #         await interaction.channel.send("Invalid selection. Please choose numbers from the list.")
+    #         return
+    #
+    #     selected.sort(reverse=True)
+    #     for i in selected:
+    #         del options_to_pick[i]
+    #
+    #     await interaction.channel.send(f"Removing options: {' and '.join(str(i + 1) for i in selected)}")
+    #     # await ctx.reply(f"Selected options: \n" + "\n".join(str(i) for i in options_to_pick))
+    #
+    #     await interaction.followup.send(f"Final idea: {random.choice(options_to_pick)}")
 
     except Exception as e:
-        await interaction.channel.send(f"Something went wrong: {e}")
+    #     await interaction.channel.send(f"Something went wrong: {e}")
 
         # 1308947389159182476
 bot.run(BOT_TOKEN)
