@@ -405,86 +405,167 @@ async def on_message(message):
     # needed to process other `bot.commands`
     await bot.process_commands(message)
 
+
+class SelectOption(discord.ui.View):
+    def __init__(self, user: discord.User):
+        super().__init__(timeout=60)
+        self.user = user
+        self.options = []
+
+    @discord.ui.button(label='1', style=discord.ButtonStyle.success)
+    async def button_1(self, interaction: discord.Interaction, button: discord.ui.Button):
+        
+
+class YesNoView(discord.ui.View):
+    def __init__(self, user: discord.User):
+        super().__init__(timeout=60)
+        self.user = user
+        self.value = None
+
+    @discord.ui.button(label='Yes', style=discord.ButtonStyle.green)
+    async def option_yes(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.value = True
+        self.stop()
+
+    @discord.ui.button(label='No', style=discord.ButtonStyle.danger)
+    async def option_no(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.value = False
+        self.stop()
+
+class FinishedView(discord.ui.View):
+    def __init__(self, user: discord.User):
+        super().__init__(timeout=60)
+        self.user = user
+        self.value = None
+
+    @discord.ui.button(label='Done', style=discord.ButtonStyle.danger)
+    async def option_done(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.value = True
+        self.stop()
+
+
+
+
 @bot.tree.command(name='start', description="Start a brainstorming session", guild=GUILD_ID)
 async def brainstormgame(interaction: discord.Interaction):
     organizer_interests = ["Time Travel", "Space Colonization", "Underwater Exploration"]
-    users_interests = []
-    both_interests = organizer_interests + users_interests
-
-    # options_to_pick = ["Meow-tergeist – A haunted space station full of ghost cats.",
-    #                    "CosmoCat Chronicles – You play as a telepathic space cat solving a cosmic horror mystery.",
-    #                    "Litter-22 – A survival horror game in a derelict ship run by mutated felines.",
-    #                    "Whisker Void – Explore the abyss of space with your cat crew as unknown horrors lurk.",
-    #                    "Tabby Terror – Manage a space shelter where cats keep disappearing into the dark…"]
 
     await interaction.response.send_message("Please enter 2-4 of your interests (Separated in comma): ")
 
     def check(m: discord.Message):
         return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
 
-    
+
     try:
         msg = await bot.wait_for("message", check=check, timeout=60)
         choices = msg.content.split(",")
 
-        
-        for choice in choices:
-            if len(choices) !=4 or len(choices) < 0:
-                await interaction.channel.send("Please enter 2-4 of your interests (Separated in comma): ")
+        if not 2 <= len(choices) <= 4:
+            await interaction.followup.send("❌ Please enter between 2 to 4 interests.")
+            return
+
+        # for choice in choices:
+        #     users_interests.append(choice)
+
+        user_interests = choices
+        remembered = []
+
+        counter = 0
+        while True:
+            available_organizer_option = [i for i in organizer_interests if i not in remembered]
+            available_user_option = [i for i in user_interests if i not in remembered]
+
+            number_of_random_user = 2
+            if len(available_user_option) < 2:
+                number_of_random_user = 1
+                if len(available_user_option) < 1:
+                    await interaction.followup.send(
+                        "Not enough new interests from your input moving to the organizers.")
+                    number_of_random_user = 0  # prevent sampling
+
+            number_of_random_organizer = 2
+            if len(available_organizer_option) < 2:
+                number_of_random_organizer = 1
+                if len(available_organizer_option) < 1:
+                    await interaction.followup.send("Not enough new interests to continue.")
+                    break
+
+            if number_of_random_organizer > 0:
+                organizer_random_interest = random.sample(available_organizer_option, number_of_random_organizer)
             else:
-                users_interests.append(choice)
+                organizer_random_interest = []
 
-        users_random_interests = ramdom.sample(users_interests, 2)
-        organizers_random_interests = ramdom.sample(organizer_interests, 2)
+            if number_of_random_user > 0:
+                user_random_interest = random.sample(available_user_option, number_of_random_user)
+            else:
+                user_random_interest = []
 
-        option_interests = organizers_random_interests + users_random_interests
+            option_interests = organizer_random_interest + user_random_interest
 
-        options_text = ""
-        for index, option in enumerate(option_interests):
-            options_text += f"{index + 1}. {option}\n"
+            options_text = ""
+            for index, option in enumerate(option_interests):
+                options_text += f"{index + 1}. {option}\n"
 
-        await interaction.response.send_message(f"Select 2-3 options that interest you: \n{options_text}")
+            # viewDone = finishedView(interaction.user)
+            await interaction.followup.send(f"Select 2-3 options that interest you \n{options_text}")
+            # await viewDone.wait()
+
+            msg = await bot.wait_for("message", check=check)
+            selected_indexes = msg.content.split(",")
+            selected = []
+
+            for i in selected_indexes:
+                i = i.strip()
+                if i == "done":
+                    await interaction.channel.send("Session ended")
+                    await interaction.channel.send(
+                        "Final remembered interests:\n" + "\n".join(
+                            f"{i + 1}. {opt}" for i, opt in enumerate(remembered))
+                    )
+                    return
+                if i.isdigit():
+                    selected.append(int(i) - 1)  # Convert to 0-based index
+                else:
+                    await interaction.channel.send("❌ Please enter only numbers separated by commas.")
+                    return
+
+            if not 2 <= len(selected) <= 3:
+                await interaction.channel.send("❌ You must select between 2 and 3 options.")
+                return
+
+            selected_options = []
+            for i in selected:
+                selected_options.append(option_interests[i])
+
+            remembered.extend(selected_options)
+
+            await interaction.channel.send("You selected:\n" + "\n".join(f"- {opt}" for opt in selected_options))
+
+            viewYN = YesNoView(interaction.user)
+            await interaction.followup.send("🔁 Do you want to view more options? (yes/no)", view=viewYN)
+            await viewYN.wait()
+
+            if viewYN.value is False:
+                break
+
+            # try:
+            #     msg = await bot.wait_for("message", check=check, timeout=60)
+            #     if msg.content.lower() != "yes":
+            #         break
+            # except asyncio.TimeoutError:
+            #     await interaction.channel.send("⌛ Timeout — ending session.")
+            #     break
+
+            counter += 1
+
+        await interaction.channel.send(
+            "Final remembered interests:\n" + "\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(remembered))
+        )
         
-        
-    #     options_text = ""
-    #     for index, option in enumerate(options_to_pick):
-    #         options_text += f"{index + 1}. {option}\n"
-    #
-    #     await interaction.response.send_message(f"Select two(2) options to remove: \n{options_text}")
-    #
-    #     def check(m: discord.Message):
-    #         return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
-    #
-    #     msg = await bot.wait_for("message", check=check, timeout=60)
-    #     choices = msg.content.split(",")
-    #
-    #     selected = []
-    #     for i in choices:
-    #         if i.strip().isdigit():
-    #             selected.append(int(i.strip()))
-    #         else:
-    #             await interaction.channel.send("Please enter a digit")
-    #             return
-    #
-    #     if len(selected) != 2:
-    #         await interaction.channel.send("Please select **exactly 2 valid options** from the list.")
-    #
-    #     selected = [int(i.strip()) - 1 for i in choices]
-    #     if any(i < 0 or i >= len(options_to_pick) for i in selected):
-    #         await interaction.channel.send("Invalid selection. Please choose numbers from the list.")
-    #         return
-    #
-    #     selected.sort(reverse=True)
-    #     for i in selected:
-    #         del options_to_pick[i]
-    #
-    #     await interaction.channel.send(f"Removing options: {' and '.join(str(i + 1) for i in selected)}")
-    #     # await ctx.reply(f"Selected options: \n" + "\n".join(str(i) for i in options_to_pick))
-    #
-    #     await interaction.followup.send(f"Final idea: {random.choice(options_to_pick)}")
-
+    except asyncio.TimeoutError:
+        await interaction.channel.send("⌛ You didn’t respond in time.")
     except Exception as e:
-    #     await interaction.channel.send(f"Something went wrong: {e}")
+        await interaction.channel.send(f"Something went wrong: {e}")
 
         # 1308947389159182476
 bot.run(BOT_TOKEN)
