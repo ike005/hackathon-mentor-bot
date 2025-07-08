@@ -1,6 +1,7 @@
 import os
 import asyncio
 import discord
+from Tools.scripts.objgraph import ignore
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -479,7 +480,7 @@ class YesNoView(discord.ui.View):
 
 # Command to start a brainstorming session, restricted to a specific guild (server)
 @bot.tree.command(name='start', description="Start a brainstorming session", guild=GUILD_ID)
-async def brainstormgame(interaction: discord.Interaction):
+async def brainstormGame(interaction: discord.Interaction):
 
     organizer_interests = ["Time Travel", "Space Colonization", "Underwater Exploration"]
 
@@ -597,5 +598,105 @@ async def brainstormgame(interaction: discord.Interaction):
         # General error handling
         await interaction.channel.send(f"Something went wrong: {e}")
 
-# Launch the Discord bot (will block the current thread)
+
+
+
+
+
+class MotivationLevel(discord.ui.View):
+    def __init__(self):
+
+        super().__init__(timeout=60)
+        self.selected_MotivationLevel = []
+
+    async def handle_selection(self, interaction: discord.Interaction, value: int, button: discord.ui.Button):
+        if value not in self.selected_MotivationLevel:  # Prevent duplicate selections
+            self.selected_MotivationLevel.append(value)  # Record this selection
+            button.disabled = True  # Disable the clicked button
+            await interaction.response.edit_message(view=self)  # Reflect the button's new state
+
+
+    @discord.ui.button(label='Super excited',emoji="😁", style=discord.ButtonStyle.success)
+    async def Level1(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_selection(interaction, 1, button)
+
+    @discord.ui.button(label='Good',emoji="😊", style=discord.ButtonStyle.success)
+    async def Level2(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_selection(interaction, 2, button)
+
+    @discord.ui.button(label='Okay',emoji="😐" , style=discord.ButtonStyle.success)
+    async def Level3(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_selection(interaction, 3, button)
+
+    @discord.ui.button(label='Stressd', emoji="😞" , style=discord.ButtonStyle.success)
+    async def Level4(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_selection(interaction, 4, button)
+
+class TaskSelection(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=60)
+        self.selected_tasks = []
+
+    async def handle_selection(self, interaction: discord.Interaction, value: int, button: discord.ui.Button):
+        if value not in self.selected_tasks:  # Prevent duplicate selections
+            self.selected_tasks.append(value)  # Record this selection
+            button.disabled = True  # Disable the clicked button
+            await interaction.response.edit_message(view=self)
+
+    @discord.ui.button(label='1', style=discord.ButtonStyle.success)
+    async def button_1(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_selection(interaction, 1, button)
+
+    # Button for selecting option 2
+    @discord.ui.button(label='2', style=discord.ButtonStyle.success)
+    async def button_2(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_selection(interaction, 2, button)
+
+    # Button for selecting option 3
+    @discord.ui.button(label='3', style=discord.ButtonStyle.success)
+    async def button_3(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_selection(interaction, 3, button)
+
+    # Button for selecting option 4
+    @discord.ui.button(label='4', style=discord.ButtonStyle.success)
+    async def button_4(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_selection(interaction, 4, button)
+
+
+@bot.tree.command(name='log', description="Log today's goal", guild=GUILD_ID)
+async def journalingSystem(interaction: discord.Interaction):
+    preTask = ["Fix mobile layout", "Finalize team roles"]
+    comTask = ["Work on backend authentication", "Work on frontend authentication", "Set up database", "Craft new features"]
+
+    await interaction.response.send_message("Hi there")
+
+    try:
+        view_feel = MotivationLevel()
+        await interaction.followup.send("How do you feel today? ", view=view_feel)
+        await view_feel.wait()
+
+        randPre = random.sample(preTask, 2)
+        randCom = random.sample(comTask, 2)
+
+        combinedTask = randPre + randCom
+
+
+        task_options = ""
+        for index, option in enumerate(combinedTask):
+            task_options += f"{index + 1}. {option}\n"
+
+        view_ts = TaskSelection()
+        await interaction.followup.send(f"Select 2 tasks that you prioritize the most: \n{task_options}", view=view_ts)
+        await view_ts.wait()
+
+
+    except asyncio.TimeoutError:
+        # Handle situation where user did not respond in time
+        await interaction.channel.send("⌛ You didn’t respond in time.")
+    except Exception as e:
+        # General error handling
+        await interaction.channel.send(f"Something went wrong: {e}")
+
+
+
 bot.run(BOT_TOKEN)
