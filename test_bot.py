@@ -11,6 +11,7 @@ import json
 import plotly.graph_objects as go
 import plotly.io as pio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import logging
 
 load_dotenv()
 BOT_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -19,6 +20,8 @@ GUILD_TOKEN = os.getenv('DISCORD_GUILD')
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
+
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
 bot = commands.Bot(command_prefix='$', intents=intents)
 GUILD_ID = discord.Object(id=1308947389159182476)
@@ -716,7 +719,9 @@ async def journalingSystem(interaction: discord.Interaction):
             else:
                 break
 
-        await interaction.followup.send("You selected:" + "\n".join(f"{opt}" for i, opt in tasks))
+
+
+        await interaction.followup.send("You selected:" + "\n".join(f"{opt}" for opt in tasks))
 
 
     except asyncio.TimeoutError:
@@ -728,4 +733,4 @@ async def journalingSystem(interaction: discord.Interaction):
 
 
 
-bot.run(BOT_TOKEN)
+bot.run(BOT_TOKEN, log_handler=handler, log_level=logging.DEBUG)
