@@ -1,17 +1,21 @@
 import os
 import asyncio
 import discord
-from Tools.scripts.objgraph import ignore
-from discord import message
-from discord.ext import commands, tasks
+from discord.ext import commands
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
+from datetime import datetime
 import random
 import json
 import plotly.graph_objects as go
 import plotly.io as pio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
+
+from Button_Views.Brainstorming_Views.user_interest_option import SelectInterestOptions
+from Button_Views.Brainstorming_Views.view_more_options import MoreOptionChoice
+
+from Button_Views.Journaling_System_Views.motivation_level import MotivationLevel
+from Button_Views.Journaling_System_Views.task_selection import TaskSelection
 
 load_dotenv()
 BOT_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -410,78 +414,6 @@ async def on_message(message):
     # needed to process other `bot.commands`
     await bot.process_commands(message)
 
-
-# View class for interactive selection of options using Discord UI buttons
-class SelectOptionView(discord.ui.View):
-    def __init__(self):
-        # Initialize the selection view with a 60-second timeout
-        super().__init__(timeout=60)
-        self.selected_values = []  # Store values (option numbers) user has picked
-
-    # Handles what happens when a selection button is clicked
-    async def handle_selection(self, interaction: discord.Interaction, value: int, button: discord.ui.Button):
-        if value not in self.selected_values:  # Prevent duplicate selections
-            self.selected_values.append(value)  # Record this selection
-            button.disabled = True             # Disable the clicked button
-            await interaction.response.edit_message(view=self)  # Reflect the button's new state
-
-    # Button for selecting option 1
-    @discord.ui.button(label='1', style=discord.ButtonStyle.success)
-    async def button_1(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 1, button)
-
-    # Button for selecting option 2
-    @discord.ui.button(label='2', style=discord.ButtonStyle.success)
-    async def button_2(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 2, button)
-
-    # Button for selecting option 3
-    @discord.ui.button(label='3', style=discord.ButtonStyle.success)
-    async def button_3(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 3, button)
-
-    # Button for selecting option 4
-    @discord.ui.button(label='4', style=discord.ButtonStyle.success)
-    async def button_4(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 4, button)
-
-    # 'Done' button to complete the selection
-    @discord.ui.button(label='Done', style=discord.ButtonStyle.danger)
-    async def option_done(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Check if the correct number of options were selected
-        if not (2 <= len(self.selected_values) <= 3):
-            await interaction.response.send_message(
-                "❌ Please select between 2 and 3 options before finishing.",
-                ephemeral=True
-            )
-            return  # Exit if the requirement is not met
-        # Disable all buttons after user finishes selection
-        for item in self.children:
-            item.disabled = True
-        await interaction.response.edit_message(view=self)  # Update button states for the user
-        await interaction.followup.send("🎉 Selection complete!", ephemeral=True)  # Confirm selection to the user
-        self.stop()  # End the view and unblock the waiting coroutine
-
-
-# Simple Yes/No dialog using buttons for user decisions
-class YesNoView(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=60)
-        self.value = None  # Will be set to True for Yes or False for No
-
-    # 'Yes' button handling
-    @discord.ui.button(label='Yes', style=discord.ButtonStyle.green)
-    async def option_yes(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.value = True
-        self.stop()  # Conclude user interaction
-
-    # 'No' button handling
-    @discord.ui.button(label='No', style=discord.ButtonStyle.danger)
-    async def option_no(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.value = False
-        self.stop()
-
-
 # Command to start a brainstorming session, restricted to a specific guild (server)
 @bot.tree.command(name='start', description="Start a brainstorming session", guild=GUILD_ID)
 async def brainstormGame(interaction: discord.Interaction):
@@ -558,7 +490,7 @@ async def brainstormGame(interaction: discord.Interaction):
                 options_text += f"{index + 1}. {option}\n"
 
             # calls selection view with option buttons
-            view_so = SelectOptionView()
+            view_so = SelectInterestOptions()
             await interaction.followup.send(f"Select 2-3 options that interest you \n{options_text}", view=view_so)
             await view_so.wait()  # Wait for user's selection
 
@@ -583,7 +515,7 @@ async def brainstormGame(interaction: discord.Interaction):
             await interaction.channel.send("You selected:\n" + "\n".join(f"- {opt}" for opt in selected_options))
 
             # Present Yes/No dialog to ask if user wants more options
-            view_yn = YesNoView()
+            view_yn = MoreOptionChoice()
             await interaction.followup.send("🔁 Do you want to view more options? (yes/no)", view=view_yn)
             await view_yn.wait()  # Wait for user to respond
 
@@ -601,81 +533,6 @@ async def brainstormGame(interaction: discord.Interaction):
     except Exception as e:
         # General error handling
         await interaction.channel.send(f"Something went wrong: {e}")
-
-
-
-
-
-
-class MotivationLevel(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
-        self.selected_MotivationLevel = []
-
-    async def handle_selection(self, interaction: discord.Interaction, value: int, button: discord.ui.Button):
-        if value not in self.selected_MotivationLevel:  # Prevent duplicate selections
-            self.selected_MotivationLevel.append(value)  # Record this selection
-            button.disabled = True  # Disable the clicked button
-            await interaction.response.edit_message(view=self)  # Reflect the button's new state
-
-
-    @discord.ui.button(label='Super excited',emoji="😁", style=discord.ButtonStyle.success)
-    async def Level1(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 1, button)
-        self.stop()
-
-    @discord.ui.button(label='Good',emoji="😊", style=discord.ButtonStyle.success)
-    async def Level2(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 2, button)
-        self.stop()
-
-    @discord.ui.button(label='Okay',emoji="😐" , style=discord.ButtonStyle.success)
-    async def Level3(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 3, button)
-        self.stop()
-
-    @discord.ui.button(label='Stressd', emoji="😞" , style=discord.ButtonStyle.success)
-    async def Level4(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 4, button)
-        self.stop()
-
-class TaskSelection(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
-        self.selected_tasks = []
-
-    async def handle_selection(self, interaction: discord.Interaction, value: int, button: discord.ui.Button):
-        if value not in self.selected_tasks:  # Prevent duplicate selections
-            self.selected_tasks.append(value)  # Record this selection
-            button.disabled = True  # Disable the clicked button
-            await interaction.response.edit_message(view=self)
-
-    @discord.ui.button(label='1', style=discord.ButtonStyle.success)
-    async def button_1(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 1, button)
-        if len(self.selected_tasks) == 2:
-            self.stop()
-
-    # Button for selecting option 2
-    @discord.ui.button(label='2', style=discord.ButtonStyle.success)
-    async def button_2(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 2, button)
-        if len(self.selected_tasks) == 2:
-            self.stop()
-
-    # Button for selecting option 3
-    @discord.ui.button(label='3', style=discord.ButtonStyle.success)
-    async def button_3(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 3, button)
-        if len(self.selected_tasks) == 2:
-            self.stop()
-
-    # Button for selecting option 4
-    @discord.ui.button(label='4', style=discord.ButtonStyle.success)
-    async def button_4(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_selection(interaction, 4, button)
-        if len(self.selected_tasks) == 2:
-            self.stop()
 
 
 @bot.tree.command(name='log', description="Log today's goal", guild=GUILD_ID)
