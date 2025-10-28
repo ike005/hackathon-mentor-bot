@@ -11,11 +11,8 @@ import plotly.io as pio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
 
-from Button_Views.Brainstorming_Views.user_interest_option import SelectInterestOptions
-from Button_Views.Brainstorming_Views.view_more_options import MoreOptionChoice
-
-from Button_Views.Journaling_System_Views.motivation_level import MotivationLevel
-from Button_Views.Journaling_System_Views.task_selection import TaskSelection
+from Commands.Brainstorm_Game import brainstormGame
+from Commands.Journaling_System import journalingSystem
 
 load_dotenv()
 BOT_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -414,179 +411,14 @@ async def on_message(message):
     # needed to process other `bot.commands`
     await bot.process_commands(message)
 
-# Command to start a brainstorming session, restricted to a specific guild (server)
-@bot.tree.command(name='start', description="Start a brainstorming session", guild=GUILD_ID)
+
+@bot.tree.command(name='start', description="Start a brainstorming season", guild=GUILD_ID)
 async def brainstormGame(interaction: discord.Interaction):
-
-    organizer_interests = ["Time Travel", "Space Colonization", "Underwater Exploration"]
-
-    # Prompt user for their interests
-    await interaction.response.send_message("Please enter 2-4 of your interests (Separated in comma): ")
-
-    # Helper function to check user reply
-    def check(m: discord.Message):
-        return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
-
-    try:
-        # Wait for user's reply (with a 60-second timeout)
-        msg = await bot.wait_for("message", check=check, timeout=60)
-        choices = msg.content.split(",")
-
-        # Validate number of interests provided
-        if not 2 <= len(choices) <= 4:
-            await interaction.followup.send("❌ Please enter between 2 to 4 interests.")
-            return  # Exit if input is out of expected range
-
-        user_interests = choices       # Store user-submitted interests
-        remembered = []               # Tracks which interests have already been selected
-
-        while True:
-            # Get interests that have not yet been picked in any prior round
-            available_organizer_option = [i for i in organizer_interests if i not in remembered]
-            available_user_option = [i for i in user_interests if i not in remembered]
-
-            # Default to showing up to 2 user interests per round
-            number_of_random_user = 2
-            if len(available_user_option) < 2:
-                number_of_random_user = 1  # Only one user option left
-                if len(available_user_option) < 1:
-                    # No user options left - notify and skip user sampling
-                    await interaction.followup.send(
-                        "Not enough new interests from your input, moving to the organizers."
-                    )
-                    number_of_random_user = 0
-
-            # Default to showing up to 2 organizer interests per round
-            number_of_random_organizer = 2
-            if len(available_organizer_option) < 2:
-                number_of_random_organizer = 1
-                if len(available_organizer_option) < 1:
-                    # No organizer options left - notify and end session
-                    await interaction.followup.send("Not enough new interests to continue.")
-                    break  # Exit main loop
-
-            # Randomly sample the allowed number of organizer/user options
-            if number_of_random_organizer > 0:
-                organizer_random_interest = random.sample(available_organizer_option, number_of_random_organizer)
-            else:
-                organizer_random_interest = []
-
-            if number_of_random_user > 0:
-                user_random_interest = random.sample(available_user_option, number_of_random_user)
-            else:
-                user_random_interest = []
-
-            # Combine all sampled options for the user to choose from
-            option_interests = organizer_random_interest + user_random_interest
-
-            # If nothing to present, session is over
-            if not option_interests:
-                await interaction.channel.send("No more new interests to select from. Ending session.")
-                break
-
-            # Build the list for display to the user
-            options_text = ""
-            for index, option in enumerate(option_interests):
-                options_text += f"{index + 1}. {option}\n"
-
-            # calls selection view with option buttons
-            view_so = SelectInterestOptions()
-            await interaction.followup.send(f"Select 2-3 options that interest you \n{options_text}", view=view_so)
-            await view_so.wait()  # Wait for user's selection
-
-            selected = view_so.selected_values  # Retrieve the chosen option numbers
-
-            # Ensure user makes a valid number of selections
-            if not (2 <= len(selected) <= 3):
-                await interaction.channel.send("❌ You must select between 2 and 3 options.")
-                continue  # Prompt again if selection not in allowed range
-
-            # Validate and map choices to option strings
-            selected_options = []
-            for i in selected:
-                if 0 <= i - 1 < len(option_interests):  # Checks for valid selection
-                    selected_options.append(option_interests[i - 1])  # Adjust for 1-based index on button
-                else:
-                    await interaction.channel.send("❌ Invalid option selected.")
-                    return
-
-            # Add selections to remembered list to avoid repeats
-            remembered.extend(selected_options)
-            await interaction.channel.send("You selected:\n" + "\n".join(f"- {opt}" for opt in selected_options))
-
-            # Present Yes/No dialog to ask if user wants more options
-            view_yn = MoreOptionChoice()
-            await interaction.followup.send("🔁 Do you want to view more options? (yes/no)", view=view_yn)
-            await view_yn.wait()  # Wait for user to respond
-
-            if view_yn.value is False:
-                break  # Exit if user does not want more options
-
-        # End of session summary listing all selected interests
-        await interaction.channel.send(
-            "Final remembered interests:\n" + "\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(remembered))
-        )
-
-    except asyncio.TimeoutError:
-        # Handle situation where user did not respond in time
-        await interaction.channel.send("⌛ You didn’t respond in time.")
-    except Exception as e:
-        # General error handling
-        await interaction.channel.send(f"Something went wrong: {e}")
-
+    await brainstormGame(interaction)
 
 @bot.tree.command(name='log', description="Log today's goal", guild=GUILD_ID)
-async def journalingSystem(interaction: discord.Interaction):
-    preTask = ["Fix mobile layout", "Finalize team roles"]
-    comTask = ["Work on backend authentication", "Work on frontend authentication", "Set up database", "Craft new features"]
-
-    user_display_name = interaction.user.display_name
-
-    await interaction.response.send_message(f"Hi there {user_display_name}")
-
-    try:
-        view_feel = MotivationLevel()
-        await interaction.followup.send("How do you feel today? ", view=view_feel)
-        await view_feel.wait()
-
-        feeling = view_feel.selected_MotivationLevel
-        await interaction.followup.send("You selected:"+ "\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(feeling)))
-
-        randPre = random.sample(preTask, 2)
-        randCom = random.sample(comTask, 2)
-
-        combinedTask = randPre + randCom
-
-
-        task_options = ""
-        for index, option in enumerate(combinedTask):
-            task_options += f"{index + 1}. {option}\n"
-
-
-        while True:
-            view_ts = TaskSelection()
-            await interaction.followup.send(f"Select 2 tasks that you prioritize the most: \n{task_options}", view=view_ts)
-            await view_ts.wait()
-
-            tasks = view_ts.selected_tasks
-
-            if len(tasks) != 2:
-                await interaction.followup.send(f"You selected: {len(tasks)} tasks. Please select 2 tasks.")
-                continue
-            else:
-                break
-
-
-
-        await interaction.followup.send("You selected:" + "\n".join(f"{opt}" for opt in tasks))
-
-
-    except asyncio.TimeoutError:
-        # Handle situation where user did not respond in time
-        await interaction.channel.send("⌛ You didn’t respond in time.")
-    except Exception as e:
-        # General error handling
-        await interaction.channel.send(f"Something went wrong: {e}")
+async def journalSystem(interaction: discord.Interaction):
+    await journalingSystem(interaction)
 
 
 
