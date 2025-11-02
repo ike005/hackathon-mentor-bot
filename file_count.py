@@ -10,13 +10,12 @@ GITHUB_API_URL = "https://api.github.com"
 load_dotenv()
 GITHUB_PAT = os.getenv("GITHUB_PAT")
 
-
-#set up the variables here for the inital mongo DB needs to be in the envfile  DONE
+# set up the variables here for the inital mongo DB needs to be in the envfile  DONE
 load_dotenv()
 uri = os.environ('mongo_uri')
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
-#ping server 
+# ping server
 try:
     client.admin.command('ping')
     print("Pinged your deployment. You successfully connected to MongoDB!")
@@ -46,7 +45,7 @@ def fetch_files(repo_owner, repo_name):
     response = requests.get(f"{GITHUB_API_URL}/repos/{repo_owner}/{repo_name}/git/trees/main?recursive=1", headers=get_headers())
     response_data = response.json()
     # print(f"{response_data = }")
-    
+
     if 'tree' in response_data:
         return response_data['tree']
     else:
@@ -135,7 +134,6 @@ def process_repo(repo_owner, repo_name):
     }
 
 
-
 #   Not sure if this is the way to go, without being able to test bot can't tell.
 #  def write_results_to_mongo(data):
 #     db = client['hackathon']
@@ -143,15 +141,15 @@ def process_repo(repo_owner, repo_name):
 #     collection.insert_one(data)
 
 def insert_data_to_mongo(data):
-   # with open('global_stats.json') as f:
-       # data = json.load(f)
+    # with open('global_stats.json') as f:
+    # data = json.load(f)
     db = client['hackathon']
-    collection = db['global_stats']  #sure naming syntax can be changed
-    #or many 
+    collection = db['global_stats']  # sure naming syntax can be changed
+    # or many
     collection.insert_many(data)
 
 #Need to test
-#Function for Repos 
+#Function for Repos
 def add_repo_to_db(owner, repo_name, added_by, client):
     db = client['hackathon']
     collection = db['global_stats']
@@ -183,7 +181,7 @@ def add_repo_to_db(owner, repo_name, added_by, client):
     return True
 
 
-    
+
 def get_all_repos_from_global_stats(client):
     db = client['hackathon']
     collection = db['global_stats']
@@ -200,7 +198,7 @@ def get_all_repos_from_global_stats(client):
    # with open(filename, 'w') as f:
      #   json.dump(data, f, indent=4)
 
-    
+
 
 def main():
     # Get all GitHub repos added via the bot
