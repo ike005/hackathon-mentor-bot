@@ -11,7 +11,7 @@ import plotly.io as pio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
 
-from Commands.Brainstorm_Game import brainstormGame
+from Commands.Brainstorm_Game import brainstormGameStart
 from Commands.Journaling_System import journalingSystem
 
 load_dotenv()
@@ -414,7 +414,7 @@ async def on_message(message):
 
 @bot.tree.command(name='start', description="Start a brainstorming season", guild=GUILD_ID)
 async def brainstormGame(interaction: discord.Interaction):
-    await brainstormGame(interaction)
+    await brainstormGameStart(interaction)
 
 @bot.tree.command(name='log', description="Log today's goal", guild=GUILD_ID)
 async def journalSystem(interaction: discord.Interaction):

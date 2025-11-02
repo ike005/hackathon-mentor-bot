@@ -1,7 +1,7 @@
 import asyncio
 import random
 import discord
-from discord.ext.commands import bot
+
 
 from Button_Views.Brainstorming_Views.user_interest_option import SelectInterestOptions
 from Button_Views.Brainstorming_Views.view_more_options import MoreOptionChoice
@@ -11,13 +11,11 @@ from Button_Views.Brainstorming_Views.view_more_options import MoreOptionChoice
 async def get_user_interests(interaction: discord.Interaction):
     await interaction.response.send_message("Please enter 2-4 of your interests (Separated in comma): ")
 
-
     def check(m: discord.Message):
         return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
 
     try:
-
-        msg = await bot.wait_for("message", check=check, timeout=60)
+        msg = await interaction.client.wait_for("message", check=check, timeout=60)
         choices = msg.content.split(",")
 
         if not 2 <= len(choices) <= 4:
@@ -30,7 +28,6 @@ async def get_user_interests(interaction: discord.Interaction):
 
 async def present_options(interaction: discord.Interaction, user_interests, organizer_interests):
     remembered = []
-
     while True:
         # Get interests that have not yet been picked in any prior round
         available_organizer_option = [i for i in organizer_interests if i not in remembered]
@@ -112,10 +109,10 @@ async def present_options(interaction: discord.Interaction, user_interests, orga
         if view_yn.value is False:
             break
 
-        return remembered
+    return remembered
 
 
-async def brainstormGame(interaction: discord.Interaction):
+async def brainstormGameStart(interaction: discord.Interaction):
 
     organizer_interests = ["Time Travel", "Space Colonization", "Underwater Exploration"]
 

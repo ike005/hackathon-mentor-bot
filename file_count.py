@@ -10,13 +10,12 @@ GITHUB_API_URL = "https://api.github.com"
 load_dotenv()
 GITHUB_PAT = os.getenv("GITHUB_PAT")
 
-
-#set up the variables here for the inital mongo DB needs to be in the envfile  DONE
+# set up the variables here for the inital mongo DB needs to be in the envfile  DONE
 load_dotenv()
 uri = os.environ('mongo_uri')
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
-#ping server 
+# ping server
 try:
     client.admin.command('ping')
     print("Pinged your deployment. You successfully connected to MongoDB!")
@@ -36,22 +35,26 @@ FILE_EXTENSIONS = {
     'Text': ['.txt', '.log'],
 }
 
+
 def get_headers():
     headers = {}
     if GITHUB_PAT:
         headers["Authorization"] = f"token {GITHUB_PAT}"
     return headers
 
+
 def fetch_files(repo_owner, repo_name):
-    response = requests.get(f"{GITHUB_API_URL}/repos/{repo_owner}/{repo_name}/git/trees/main?recursive=1", headers=get_headers())
+    response = requests.get(f"{GITHUB_API_URL}/repos/{repo_owner}/{repo_name}/git/trees/main?recursive=1",
+                            headers=get_headers())
     response_data = response.json()
     # print(f"{response_data = }")
-    
+
     if 'tree' in response_data:
         return response_data['tree']
     else:
         print(f"Error: 'tree' key not found in the response for repo {repo_owner}/{repo_name}")
         return []
+
 
 def count_files(files, file_extensions):
     language_counts = defaultdict(int)
@@ -64,6 +67,7 @@ def count_files(files, file_extensions):
                     break
     return language_counts
 
+
 def fetch_language_bytes(repo_owner, repo_name):
     url = f"{GITHUB_API_URL}/repos/{repo_owner}/{repo_name}/languages"
     response = requests.get(url, headers=get_headers())
@@ -72,6 +76,7 @@ def fetch_language_bytes(repo_owner, repo_name):
         exit()
     return response.json()
 
+
 def count_lines_per_file(repo_owner, repo_name):
     url = f"{GITHUB_API_URL}/repos/{repo_owner}/{repo_name}/git/trees/main?recursive=1"
     response = requests.get(url, headers=get_headers())
@@ -79,15 +84,17 @@ def count_lines_per_file(repo_owner, repo_name):
         print("Rate limit exceeded. Try again later.")
         exit()
     files = response.json()['tree']
-    
-    ignored_extensions = ['.json', '.md', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.pdf', '.zip', '.tar', '.gz', '.rar', '.7z', '.exe', '.dll', '.so', '.dylib', '.gitignore', '.yaml', '.yml']
+
+    ignored_extensions = ['.json', '.md', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.pdf', '.zip',
+                          '.tar', '.gz', '.rar', '.7z', '.exe', '.dll', '.so', '.dylib', '.gitignore', '.yaml', '.yml']
     ignored_directories = ['node_modules', 'venv', 'lib', 'libs', 'dist', 'build']
-    
+
     line_counts = {}
     for file in files:
         if file['type'] == 'blob':
             file_path = file['path']
-            if '.' not in file_path or any(file_path.endswith(ext) for ext in ignored_extensions) or any(dir in file_path.split('/') for dir in ignored_directories):
+            if '.' not in file_path or any(file_path.endswith(ext) for ext in ignored_extensions) or any(
+                    dir in file_path.split('/') for dir in ignored_directories):
                 continue
             file_url = f"{GITHUB_API_URL}/repos/{repo_owner}/{repo_name}/git/blobs/{file['sha']}"
             file_response = requests.get(file_url, headers=get_headers())
@@ -96,8 +103,9 @@ def count_lines_per_file(repo_owner, repo_name):
                 exit()
             file_content = file_response.json()['content']
             line_counts[file_path] = file_content.count('\n')
-    
+
     return line_counts
+
 
 def process_repo(repo_owner, repo_name):
     files = fetch_files(repo_owner, repo_name)
@@ -135,7 +143,6 @@ def process_repo(repo_owner, repo_name):
     }
 
 
-
 #   Not sure if this is the way to go, without being able to test bot can't tell.
 #  def write_results_to_mongo(data):
 #     db = client['hackathon']
@@ -143,25 +150,25 @@ def process_repo(repo_owner, repo_name):
 #     collection.insert_one(data)
 
 def insert_data_to_mongo(data):
-   # with open('global_stats.json') as f:
-       # data = json.load(f)
+    # with open('global_stats.json') as f:
+    # data = json.load(f)
     db = client['hackathon']
-    collection = db['global_stats']  #sure naming syntax can be changed
-    #or many 
+    collection = db['global_stats']  # sure naming syntax can be changed
+    # or many
     collection.insert_many(data)
 
 
 # add to the repo list from bot 
 
 
-#stays the same? 
-#def write_results_to_file(data, filename):
-   # with open(filename, 'w') as f:
-     #   json.dump(data, f, indent=4)
+# stays the same?
+# def write_results_to_file(data, filename):
+# with open(filename, 'w') as f:
+#   json.dump(data, f, indent=4)
 
 def main():
-    #hard coded?
-    #next add to the database from the bot 
+    # hard coded?
+    # next add to the database from the bot
     repos = [
         {"owner": "totally-not-frito-lays", "name": "swapy-sandbox"},
         {"owner": "meanderingleaf", "name": "hackathon-mentor-bot"},
@@ -193,11 +200,12 @@ def main():
         "repo_array": repo_array
     }
 
-    #this will output data to the mongoDB database 
-    #write_results_to_file(output_data, "global_stats.json")
+    # this will output data to the mongoDB database
+    # write_results_to_file(output_data, "global_stats.json")
 
-    #write to mongo/ new data
+    # write to mongo/ new data
     insert_data_to_mongo(output_data)
+
 
 if __name__ == "__main__":
     main()
