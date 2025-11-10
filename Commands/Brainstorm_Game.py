@@ -5,7 +5,7 @@ import discord
 
 from Button_Views.Brainstorming_Views.user_interest_option import SelectInterestOptions
 from Button_Views.Brainstorming_Views.view_more_options import MoreOptionChoice
-
+from flask_app import mycol
 
 
 async def get_user_interests(interaction: discord.Interaction):
@@ -119,6 +119,14 @@ async def brainstormGameStart(interaction: discord.Interaction):
     user_interests = await get_user_interests(interaction)
 
     final_choice = await present_options(interaction, user_interests, organizer_interests)
+
+    mycol.update_one(
+        {
+            "user_id": interaction.user.id,
+            "user_name": interaction.user.name,
+        }, {"$set": {"user_interests": final_choice}},
+        upsert=True
+    )
 
     await interaction.channel.send(
         "Final remembered interests:\n" + "\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(final_choice))

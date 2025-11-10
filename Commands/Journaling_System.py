@@ -4,6 +4,7 @@ import discord
 
 from Button_Views.Journaling_System_Views.motivation_level import MotivationLevel
 from Button_Views.Journaling_System_Views.task_selection import TaskSelection
+from flask_app import mydb
 
 
 
@@ -12,6 +13,7 @@ async def get_user_motivation_level(interaction: discord.Interaction):
     await interaction.followup.send("How do you feel today? ", view=view_feel)
     await view_feel.wait()
     return view_feel.selected_MotivationLevel
+
 
 async def get_user_task_selection(interaction: discord.Interaction):
     preTask = ["Fix mobile layout", "Finalize team roles"]
@@ -28,12 +30,14 @@ async def get_user_task_selection(interaction: discord.Interaction):
         task_options += f"{index + 1}. {option}\n"
 
     while True:
-
         view_ts = TaskSelection()
         await interaction.followup.send(f"Select 2 tasks that you prioritize the most: \n{task_options}", view=view_ts)
         await view_ts.wait()
 
-        tasks = view_ts.selected_tasks
+        taskIndexes = view_ts.selected_tasks
+        tasks = []
+        for i in taskIndexes:
+            tasks.append(combinedTask[i - 1])
 
         if len(tasks) != 2:
             await interaction.followup.send(f"You selected: {len(tasks)} tasks. Please select 2 tasks.")
@@ -47,6 +51,7 @@ async def get_user_task_selection(interaction: discord.Interaction):
 
 
 async def journalingSystem(interaction: discord.Interaction):
+    mycol = mydb["users"]
     user_display_name = interaction.user.display_name
 
     await interaction.response.send_message(f"Hi there {user_display_name}")
@@ -58,6 +63,14 @@ async def journalingSystem(interaction: discord.Interaction):
 
         user_tasks = await get_user_task_selection(interaction)
         await interaction.followup.send("You selected:" + "\n".join(f"{opt}" for opt in user_tasks))
+
+        mycol.update_one(
+            {
+                "user_id": interaction.user.id,
+                "user_name": interaction.user.name,
+            }, {"$set": {"user_feeling": user_feeling, "user_tasks": user_tasks}},
+            upsert=True
+        )
 
     except asyncio.TimeoutError:
         # Handle situation where user did not respond in time
