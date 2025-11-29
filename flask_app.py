@@ -1,14 +1,16 @@
 import os
 from pymongo import MongoClient
+from dotenv import load_dotenv
+load_dotenv()
 
 username = os.getenv("MONGO_USERNAME")
 password = os.getenv("MONGO_PASSWORD")
 
 
 
-print(
-    f"The feeling of the user is {list}"
-)
+# print(
+#     f"The feeling of the user is {user}"
+# )
 
 url = f"mongodb+srv://{username}:{password}@hackathonbot.96inpog.mongodb.net/?retryWrites=true&w=majority"
 
@@ -18,6 +20,8 @@ mydb = myclient["hackathonbot"]
 
 
 mycol = mydb["users"]
+
+# mycol.delete_many({})
 #
 #
 # dummy_users = [
@@ -34,6 +38,6 @@ mycol = mydb["users"]
 # print("Collections in 'hackathonbot':", mydb.list_collection_names())
 
 
-print("\nDocuments in 'users' collection:")
-for user in mycol.find():
-    print(user)
+# print("\nDocuments in 'users' collection:")
+# for user in mycol.find():
+#     print(user)
