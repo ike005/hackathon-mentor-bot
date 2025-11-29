@@ -10,9 +10,6 @@ print(
     f"The feeling of the user is {list}"
 )
 
-username = "chibuikeanyiam"
-password = "accessEverton"
-
 url = f"mongodb+srv://{username}:{password}@hackathonbot.96inpog.mongodb.net/?retryWrites=true&w=majority"
 
 
