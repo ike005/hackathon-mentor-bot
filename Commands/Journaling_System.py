@@ -1,6 +1,7 @@
 import asyncio
 import random
 import discord
+from datetime import datetime
 
 from Button_Views.Journaling_System_Views.motivation_level import MotivationLevel
 from Button_Views.Journaling_System_Views.task_selection import TaskSelection
@@ -64,13 +65,22 @@ async def journalingSystem(interaction: discord.Interaction):
         user_tasks = await get_user_task_selection(interaction)
         await interaction.followup.send("You selected:" + "\n".join(f"{opt}" for opt in user_tasks))
 
+        today = datetime.now().strftime("%Y-%m-%d")
+
         mycol.update_one(
             {
                 "user_id": interaction.user.id,
                 "user_name": interaction.user.name,
-            }, {"$set": {"user_feeling": user_feeling, "user_tasks": user_tasks}},
+            },
+            {
+                "$set": {
+                    f"{today}.user_feeling": user_feeling,
+                    f"{today}.user_tasks": user_tasks,
+                }
+            },
             upsert=True
         )
+
 
     except asyncio.TimeoutError:
         # Handle situation where user did not respond in time

@@ -1,6 +1,7 @@
 import asyncio
 import random
 import discord
+from datetime import datetime
 
 
 from Button_Views.Brainstorming_Views.user_interest_option import SelectInterestOptions
@@ -120,11 +121,18 @@ async def brainstormGameStart(interaction: discord.Interaction):
 
     final_choice = await present_options(interaction, user_interests, organizer_interests)
 
+    today = datetime.now().strftime("%Y-%m-%d")
+
     mycol.update_one(
         {
             "user_id": interaction.user.id,
             "user_name": interaction.user.name,
-        }, {"$set": {"user_interests": final_choice}},
+        },
+        {
+            "$set": {
+                f"{today}.user_interests": final_choice
+            }
+        },
         upsert=True
     )
 
