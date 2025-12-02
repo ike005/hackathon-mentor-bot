@@ -6,8 +6,6 @@ load_dotenv()
 username = os.getenv("MONGO_USERNAME")
 password = os.getenv("MONGO_PASSWORD")
 
-
-
 # print(
 #     f"The feeling of the user is {user}"
 # )
@@ -38,6 +36,6 @@ mycol = mydb["users"]
 # print("Collections in 'hackathonbot':", mydb.list_collection_names())
 
 
-# print("\nDocuments in 'users' collection:")
-# for user in mycol.find():
-#     print(user)
+print("\nDocuments in 'users' collection:")
+for user in mycol.find():
+    print(user)
