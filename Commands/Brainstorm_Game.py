@@ -136,6 +136,20 @@ async def brainstormGameStart(interaction: discord.Interaction):
         upsert=True
     )
 
+    # mycol.update_one(
+    #     {
+    #         "user_id": interaction.user.id,
+    #         "user_name": interaction.user.name,
+    #         "$setOnInsert": {f"dates.{today}": {}}
+    #     },
+    #     {
+    #         "$set": {
+    #             f"dates.{today}.user_interests": final_choice
+    #         }
+    #     },
+    #     upsert=True
+    # )
+
     await interaction.channel.send(
         "Final remembered interests:\n" + "\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(final_choice))
     )
