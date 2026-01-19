@@ -81,6 +81,20 @@ async def journalingSystem(interaction: discord.Interaction):
             upsert=True
         )
 
+        # mycol.update_one(
+        #     {
+        #         "user_id": interaction.user.id,
+        #         "user_name": interaction.user.name,
+        #     },
+        #     {
+        #         "$set": {
+        #             f"dates.{today}.user_feeling": user_feeling,
+        #             f"dates.{today}.user_tasks": user_tasks,
+        #         }
+        #     },
+        #     upsert=True
+        # )
+
 
     except asyncio.TimeoutError:
         # Handle situation where user did not respond in time
