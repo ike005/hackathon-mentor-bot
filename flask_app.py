@@ -18,6 +18,7 @@ mydb = myclient["hackathonbot"]
 
 
 mycol = mydb["users"]
+new_my_col = mydb["usersnew"]
 
 # mycol.delete_many({})
 #
@@ -35,7 +36,7 @@ mycol = mydb["users"]
 #
 # print("Collections in 'hackathonbot':", mydb.list_collection_names())
 
-
-print("\nDocuments in 'users' collection:")
-for user in mycol.find():
-    print(user)
+#
+# print("\nDocuments in 'users' collection:")
+# for user in mycol.find():
+#     print(user)
