@@ -10,7 +10,7 @@ from flask_app import mycol
 
 
 async def get_user_interests(interaction: discord.Interaction):
-    await interaction.response.send_message("Please enter 2-4 of your interests (Separated in comma): ")
+    await interaction.response.send_message(f"Please enter 2 - 4 of your interests(Separated in comma):")
 
     def check(m: discord.Message):
         return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id

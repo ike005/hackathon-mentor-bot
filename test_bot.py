@@ -13,6 +13,8 @@ import logging
 
 from Commands.Brainstorm_Game import brainstormGameStart
 from Commands.Journaling_System import journalingSystem
+from Commands.intro_message import intro
+from Commands.Get_Information import Intro_and_information
 
 load_dotenv()
 BOT_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -25,7 +27,7 @@ intents.members = True
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
 bot = commands.Bot(command_prefix='$', intents=intents)
-GUILD_ID = discord.Object(id=1308947389159182476)
+GUILD_ID = discord.Object(id=GUILD_TOKEN)
 
 scheduler = AsyncIOScheduler()
 
@@ -412,13 +414,22 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
-@bot.tree.command(name='start', description="Start a brainstorming season", guild=GUILD_ID)
+@bot.tree.command(name='brainstorm', description="Start a brainstorming season", guild=GUILD_ID)
 async def brainstormGame(interaction: discord.Interaction):
     await brainstormGameStart(interaction)
 
 @bot.tree.command(name='log', description="Log today's goal", guild=GUILD_ID)
 async def journalSystem(interaction: discord.Interaction):
     await journalingSystem(interaction)
+
+@bot.tree.command(name='help', description="help Interactions", guild=GUILD_ID)
+async def IntroStart(interaction: discord.Interaction):
+    await intro(interaction)
+
+@bot.tree.command(name='go', description="Start Interactions", guild=GUILD_ID)
+async def InformationStart(interaction: discord.Interaction):
+    await Intro_and_information(interaction)
+
 
 
 
