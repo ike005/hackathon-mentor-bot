@@ -426,7 +426,7 @@ async def journalSystem(interaction: discord.Interaction):
 async def IntroStart(interaction: discord.Interaction):
     await intro(interaction)
 
-@bot.tree.command(name='go', description="Start Interactions", guild=GUILD_ID)
+@bot.tree.command(name='profile', description="Start Interactions", guild=GUILD_ID)
 async def InformationStart(interaction: discord.Interaction):
     await Intro_and_information(interaction)
 

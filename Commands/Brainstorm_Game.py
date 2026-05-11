@@ -6,7 +6,7 @@ from datetime import datetime
 
 from Button_Views.Brainstorming_Views.user_interest_option import SelectInterestOptions
 from Button_Views.Brainstorming_Views.view_more_options import MoreOptionChoice
-from flask_app import mycol
+from flask_app import mydb
 
 
 async def get_user_interests(interaction: discord.Interaction):
@@ -123,32 +123,20 @@ async def brainstormGameStart(interaction: discord.Interaction):
 
     today = datetime.now().strftime("%Y-%m-%d")
 
+    mycol = mydb["brainstorming"]
+
     mycol.update_one(
         {
             "user_id": interaction.user.id,
-            "user_name": interaction.user.name,
         },
         {
             "$set": {
-                f"{today}.user_interests": final_choice
+                f"user_interests": final_choice,
+                f"log_date": today,
             }
         },
         upsert=True
     )
-
-    # mycol.update_one(
-    #     {
-    #         "user_id": interaction.user.id,
-    #         "user_name": interaction.user.name,
-    #         "$setOnInsert": {f"dates.{today}": {}}
-    #     },
-    #     {
-    #         "$set": {
-    #             f"dates.{today}.user_interests": final_choice
-    #         }
-    #     },
-    #     upsert=True
-    # )
 
     await interaction.channel.send(
         "Final remembered interests:\n" + "\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(final_choice))
