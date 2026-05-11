@@ -1,51 +1,72 @@
 import discord
 
-from flask_app import mydb
-
 intro_message = """
-**Welcome to the server 👋**
+# 👋 Welcome to the Server!
 
-We’re glad to have you here. This bot is here to help you check in, track how things are going, and use guided activities in the server.
+We’re excited to have you here. This bot is designed to help you:
+- Track daily progress
+- Log feelings and productivity
+- Brainstorm creative ideas
+- Build your personal profile
 
-**Commands**
-`/start` — Begin using the bot and get set up
-`/log` — Submit your daily check-in, feelings, and progress
-`/brainstormgame` — Start the brainstorming activity for game ideas
-`/help` — View all available commands
+##  Available Slash Commands
 
-**How to get started**
-Type `/start` and follow the prompts from the bot.
+`/profile` — Set up your personal profile and introduction information  
+`/log` — Submit your daily journal, motivation, and task progress  
+`/brainstorm` — Start the brainstorming activity for new game or project ideas  
+`/help` — View this help guide anytime  
 
-After that, you can:
+##  Getting Started
 
-* use `/log` for your daily check-in
-* use `/brainstormgame` to build and explore ideas
-* use `/help` anytime you need guidance
+### 1️⃣ First Time Here?
+Use:
+`/profile`
 
-We’re excited to have you here. Get started with `/start` 🚀
+This will help you:
+- Add your name
+- Age
+- Gender
+- GitHub
+- Email
+
+---
+
+### 2️⃣ Daily Progress Tracking
+Use:
+`/log`
+
+This allows you to:
+- Record how you're feeling
+- Reflect on daily/team progress
+- Prioritize tasks
+- Save your journal
+
+---
+
+### 3️⃣ Brainstorming Mode
+Use:
+`/brainstorm`
+
+Perfect for:
+- Creative game ideas
+- Team planning
+- Innovation sessions
+
+---
+
+### 4️⃣ Need Assistance?
+Use:
+`/help`
+
+Anytime you need command guidance.
+
+---
+
+## 🌟 Recommended Flow
+`/profile` → `/log` → `/brainstorm`
+
+We’re glad you’re here — let’s build something amazing together! 🚀
 """
 
-# class BasicIntroModal(discord.ui.Modal, title="Quick Intro"):
-#     name = discord.ui.Label(text='Name', component=discord.ui.TextInput( placeholder="Enter your name here", required=True, max_length=100))
-#     answer = discord.ui.Label(text='answer', component=discord.ui.TextInput( placeholder="Enter your answer here", required=True, max_length=100))
-#
-#
-#     async def on_submit(self, interaction: discord.Interaction):
-#         new_my_col = mydb["users_new"]
-#
-#         user_data = {
-#             "user_id": str(interaction.user.id),
-#             "username": str(interaction.user),
-#             "name": {self.name.value}
-#         }
-#
-#         new_my_col.insert_one(user_data)
-#
-#         await interaction.response.send_message(
-#             f"Welcome {self.name.value}! answer is {self.answer.value}",
-#             ephemeral=True
-#         )
-
 async def intro(interaction: discord.Interaction):
-    # await interaction.response.send_modal(BasicIntroModal())
-    await interaction.response.send_message(f"{intro_message}")
+    await interaction.response.send_message(intro_message, ephemeral=True)

@@ -48,57 +48,77 @@ async def get_user_task_selection(interaction: discord.Interaction):
 
     return tasks
 
+class JournalTextModal(discord.ui.Modal, title="Daily Reflection"):
+
+    def __init__(self):
+        super().__init__()
+        self.user_response = None
+
+    reflection = discord.ui.TextInput(
+        label="How are things going today?",
+        style=discord.TextStyle.paragraph,
+        placeholder="Explain in detail how things are going for you or your team...",
+        required=True,
+        max_length=1000
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        self.user_response = self.reflection.value
+
+        await interaction.response.send_message("✅ Your reflection has been recorded!",ephemeral=True)
+
+
+async def get_user_text_feeling(interaction: discord.Interaction):
+    modal = JournalTextModal()
+    await interaction.response.send_modal(modal)
+
+    await modal.wait()
+
+    return modal.user_response
 
 
 
 async def journalingSystem(interaction: discord.Interaction):
-    mycol = mydb["users"]
-    user_display_name = interaction.user.display_name
-
-    await interaction.response.send_message(f"Hi there {user_display_name}")
-
     try:
+
+        user_text_feeling = await get_user_text_feeling(interaction)
+
+        user_display_name = interaction.user.display_name
+        await interaction.followup.send(
+            f"Hi there {user_display_name}! 👋",
+            ephemeral=True
+        )
+
         user_feeling = await get_user_motivation_level(interaction)
         await interaction.followup.send("You selected:"+ "\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(user_feeling)))
 
+        await interaction.followup.send(f"📝 Reflection saved:\n{user_text_feeling}",ephemeral=True)
 
         user_tasks = await get_user_task_selection(interaction)
         await interaction.followup.send("You selected:" + "\n".join(f"{opt}" for opt in user_tasks))
+
+        mycol = mydb["daily_log"]
 
         today = datetime.now().strftime("%Y-%m-%d")
 
         mycol.update_one(
             {
                 "user_id": interaction.user.id,
-                "user_name": interaction.user.name,
             },
             {
                 "$set": {
-                    f"{today}.user_feeling": user_feeling,
-                    f"{today}.user_tasks": user_tasks,
+                    f"log_date": today,
+                    f"user_feeling": user_feeling,
+                    f"user_text_feeling": user_text_feeling,
+                    f"user_tasks": user_tasks,
                 }
             },
             upsert=True
         )
 
-        # mycol.update_one(
-        #     {
-        #         "user_id": interaction.user.id,
-        #         "user_name": interaction.user.name,
-        #     },
-        #     {
-        #         "$set": {
-        #             f"dates.{today}.user_feeling": user_feeling,
-        #             f"dates.{today}.user_tasks": user_tasks,
-        #         }
-        #     },
-        #     upsert=True
-        # )
-
+        await interaction.followup.send("Your daily journal has been successfully saved!",ephemeral=True)
 
     except asyncio.TimeoutError:
-        # Handle situation where user did not respond in time
         await interaction.channel.send("⌛ You didn’t respond in time.")
     except Exception as e:
-        # General error handling
         await interaction.channel.send(f"Something went wrong: {e}")

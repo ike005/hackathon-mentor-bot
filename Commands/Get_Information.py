@@ -1,40 +1,38 @@
-import datetime
-
 import discord
 from flask_app import mydb
 
 class BasicIntroModal(discord.ui.Modal, title="Quick Intro"):
-    name = discord.ui.Label(
-        text='Name',
-        component=discord.ui.TextInput(placeholder="Enter your name here")
+    name = discord.ui.TextInput(
+        label="Name",
+        placeholder="Enter your name here"
     )
 
-    age = discord.ui.Label(
-        text='Age',
-        component=discord.ui.TextInput(placeholder="Enter your age here")
+    age = discord.ui.TextInput(
+        label="Age",
+        placeholder="Enter your age here"
     )
 
-    gender = discord.ui.Label(
-        text='Gender',
-        component=discord.ui.TextInput(placeholder="Enter your gender here")
+    gender = discord.ui.TextInput(
+        label="Gender",
+        placeholder="Enter your gender here"
     )
 
-    github_link = discord.ui.Label(
-        text='Github Link',
-        component=discord.ui.TextInput(placeholder="Enter your github link here")
+    github_link = discord.ui.TextInput(
+        label="Github Link",
+        placeholder="Enter your github link here"
     )
 
-    email = discord.ui.Label(
-        text='Email',
-        component=discord.ui.TextInput(placeholder="Enter your email here")
+    email = discord.ui.TextInput(
+        label="Email",
+        placeholder="Enter your email here"
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        name = self.name.component.value
-        age = self.age.component.value
-        gender = self.gender.component.value
-        github_link = self.github_link.component.value
-        email = self.email.component.value
+        name = self.name.value
+        age = self.age.value
+        gender = self.gender.value
+        github_link = self.github_link.value
+        email = self.email.value
 
         mycol = mydb["users_new"]
 
@@ -70,7 +68,6 @@ class BasicIntroModal(discord.ui.Modal, title="Quick Intro"):
         """
 
         await interaction.response.send_message(message, ephemeral=True)
-
 
 async def Intro_and_information(interaction: discord.Interaction):
     await interaction.response.send_modal(BasicIntroModal())
