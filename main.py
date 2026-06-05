@@ -12,10 +12,10 @@ import plotly.io as pio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
 
-from Commands.ideation import brainstormGameStart
-from Commands.daily_log import journalingSystem
-from Commands.help_message import intro
-from Commands.profile_update import Intro_and_information
+from Commands.ideation import Ideation
+from Commands.daily_log import Daily_Log
+from Commands.help_message import Help_Message
+from Commands.profile_update import Profile_Update
 
 load_dotenv()
 BOT_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -466,7 +466,7 @@ async def on_message(message):
 async def brainstormGame(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True,ephemeral=True)
     try:
-        await brainstormGameStart(interaction)
+        await Ideation(interaction)
     except ValueError as e:
         await interaction.followup.send(f"Input Error: {e}", ephemeral=True)
     except discord.HTTPException:
@@ -481,7 +481,7 @@ async def journalSystem(interaction: discord.Interaction):
     # await interaction.response.defer(thinking=True, ephemeral=True)
 
     try:
-        await journalingSystem(interaction)
+        await Daily_Log(interaction)
     except ValueError as e:
         await interaction.followup.send(f"Input Error: {e}", ephemeral=True)
     except discord.HTTPException:
@@ -496,7 +496,7 @@ async def journalSystem(interaction: discord.Interaction):
 async def IntroStart(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True, ephemeral=True)
     try:
-        await intro(interaction)
+        await Help_Message(interaction)
     except ValueError as e:
         await interaction.followup.send(f"Input Error: {e}", ephemeral=True)
     except discord.HTTPException:
@@ -512,7 +512,7 @@ async def IntroStart(interaction: discord.Interaction):
 async def InformationStart(interaction: discord.Interaction):
     # await Intro_and_information(interaction)
     try:
-        await Intro_and_information(interaction)
+        await Profile_Update(interaction)
     except ValueError as e:
         await interaction.followup.send(f"Input Error: {e}", ephemeral=True)
     except discord.HTTPException:
