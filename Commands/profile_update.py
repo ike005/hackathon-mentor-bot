@@ -69,5 +69,5 @@ class BasicIntroModal(discord.ui.Modal, title="Quick Intro"):
 
         await interaction.response.send_message(message, ephemeral=True)
 
-async def Intro_and_information(interaction: discord.Interaction):
+async def Profile_Update(interaction: discord.Interaction):
     await interaction.response.send_modal(BasicIntroModal())

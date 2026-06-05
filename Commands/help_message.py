@@ -68,5 +68,5 @@ Anytime you need command guidance.
 We’re glad you’re here — let’s build something amazing together! 🚀
 """
 
-async def intro(interaction: discord.Interaction):
-    await interaction.response.send_message(intro_message, ephemeral=True)
+async def Help_Message(interaction: discord.Interaction):
+    await interaction.followup.send(intro_message, ephemeral=True)

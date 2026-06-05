@@ -4,13 +4,13 @@ import discord
 from datetime import datetime
 
 
-from Button_Views.Brainstorming_Views.user_interest_option import SelectInterestOptions
-from Button_Views.Brainstorming_Views.view_more_options import MoreOptionChoice
+from Button_Views.Ideation_Views.user_interest_option import SelectInterestOptions
+from Button_Views.Ideation_Views.view_more_options import MoreOptionChoice
 from flask_app import mydb
 
 
 async def get_user_interests(interaction: discord.Interaction):
-    await interaction.response.send_message(f"Please enter 2 - 4 of your interests(Separated in comma):")
+    await interaction.followup.send(f"Please enter 2 - 4 of your interests(Separated in comma):")
 
     def check(m: discord.Message):
         return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
@@ -113,7 +113,7 @@ async def present_options(interaction: discord.Interaction, user_interests, orga
     return remembered
 
 
-async def brainstormGameStart(interaction: discord.Interaction):
+async def Ideation(interaction: discord.Interaction):
 
     organizer_interests = ["Time Travel", "Space Colonization", "Underwater Exploration"]
 

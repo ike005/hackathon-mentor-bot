@@ -1,6 +1,7 @@
 import os
 import asyncio
 import discord
+from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
 from datetime import datetime
@@ -11,14 +12,15 @@ import plotly.io as pio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
 
-from Commands.Brainstorm_Game import brainstormGameStart
-from Commands.Journaling_System import journalingSystem
-from Commands.intro_message import intro
-from Commands.Get_Information import Intro_and_information
+from Commands.ideation import brainstormGameStart
+from Commands.daily_log import journalingSystem
+from Commands.help_message import intro
+from Commands.profile_update import Intro_and_information
 
 load_dotenv()
 BOT_TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD_TOKEN = os.getenv('DISCORD_GUILD')
+HACKATHON_CHANNEL_ID = int(os.getenv('HACKATHON_CHANNEL_ID'))
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -27,7 +29,7 @@ intents.members = True
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
 bot = commands.Bot(command_prefix='$', intents=intents)
-GUILD_ID = discord.Object(id=GUILD_TOKEN)
+GUILD_ID = discord.Object(id=int(GUILD_TOKEN))
 
 scheduler = AsyncIOScheduler()
 
@@ -35,8 +37,6 @@ scheduler = AsyncIOScheduler()
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
-    # if not send_scheduled_messages.is_running():
-    #     send_scheduled_messages.start()
     try:
         synced = await bot.tree.sync(guild=GUILD_ID)
         print(f"Synced {len(synced)} command(s).")
@@ -44,6 +44,53 @@ async def on_ready():
         print(f"Failed to sync commands: {e}")
 
     scheduler.start()
+
+# def hackathon_channel_only():
+#
+#     async def predicate(interaction: discord.Interaction):
+#         if interaction.channel.id != HACKATHON_CHANNEL_ID:
+#             await interaction.response.send_message(
+#                 f"This command can only be used in <#{HACKATHON_CHANNEL_ID}>.",
+#                 ephemeral=True
+#             )
+#             return False
+#
+#         return True
+#
+#     return app_commands.check(predicate)
+
+class WrongChannel(app_commands.CheckFailure):
+    pass
+
+def hackathon_channel_only():
+
+    async def predicate(interaction):
+
+        if interaction.channel.id != HACKATHON_CHANNEL_ID:
+            raise WrongChannel()
+
+        return True
+
+    return app_commands.check(predicate)
+
+
+@bot.tree.error
+async def on_app_command_error(
+    interaction: discord.Interaction,
+    error: app_commands.AppCommandError
+):
+
+    if isinstance(error, WrongChannel):
+
+        if not interaction.response.is_done():
+            await interaction.response.send_message(
+                f"This command can only be used in <#{HACKATHON_CHANNEL_ID}>.",
+                ephemeral=True
+            )
+
+        return
+
+    print(error)
 
 def get_user_or_role(ctx, identifier):
     # Check if the identifier is a user
@@ -415,22 +462,65 @@ async def on_message(message):
 
 
 @bot.tree.command(name='brainstorm', description="Start a brainstorming season", guild=GUILD_ID)
+@hackathon_channel_only()
 async def brainstormGame(interaction: discord.Interaction):
-    await brainstormGameStart(interaction)
+    await interaction.response.defer(thinking=True,ephemeral=True)
+    try:
+        await brainstormGameStart(interaction)
+    except ValueError as e:
+        await interaction.followup.send(f"Input Error: {e}", ephemeral=True)
+    except discord.HTTPException:
+        await interaction.followup.send("Discord encountered an issue. Please try again.",ephemeral=True)
+    except Exception as e:
+        print(e)
+        await interaction.followup.send("Something unexpected happened. ""Please contact an administrator if this continues.",ephemeral=True)
 
 @bot.tree.command(name='log', description="Log today's goal", guild=GUILD_ID)
+@hackathon_channel_only()
 async def journalSystem(interaction: discord.Interaction):
-    await journalingSystem(interaction)
+    # await interaction.response.defer(thinking=True, ephemeral=True)
+
+    try:
+        await journalingSystem(interaction)
+    except ValueError as e:
+        await interaction.followup.send(f"Input Error: {e}", ephemeral=True)
+    except discord.HTTPException:
+        await interaction.followup.send("Discord encountered an issue. Please try again.", ephemeral=True)
+    except Exception as e:
+        print(e)
+        await interaction.followup.send("Something unexpected happened. ""Please contact an administrator if this continues.", ephemeral=True)
+
 
 @bot.tree.command(name='help', description="help Interactions", guild=GUILD_ID)
+@hackathon_channel_only()
 async def IntroStart(interaction: discord.Interaction):
-    await intro(interaction)
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    try:
+        await intro(interaction)
+    except ValueError as e:
+        await interaction.followup.send(f"Input Error: {e}", ephemeral=True)
+    except discord.HTTPException:
+        await interaction.followup.send("Discord encountered an issue. Please try again.", ephemeral=True)
+    except Exception as e:
+        print(e)
+        await interaction.followup.send(
+            "Something unexpected happened. ""Please contact an administrator if this continues.", ephemeral=True)
+
 
 @bot.tree.command(name='profile', description="Start Interactions", guild=GUILD_ID)
+# @hackathon_channel_only()
 async def InformationStart(interaction: discord.Interaction):
-    await Intro_and_information(interaction)
-
-
+    # await Intro_and_information(interaction)
+    try:
+        await Intro_and_information(interaction)
+    except ValueError as e:
+        await interaction.followup.send(f"Input Error: {e}", ephemeral=True)
+    except discord.HTTPException:
+        await interaction.followup.send("Discord encountered an issue. Please try again.", ephemeral=True)
+    except Exception as e:
+        print(e)
+        await interaction.followup.send(
+            "Something unexpected happened. ""Please contact an administrator if this continues.", ephemeral=True)
 
 
 bot.run(BOT_TOKEN, log_handler=handler, log_level=logging.DEBUG)
