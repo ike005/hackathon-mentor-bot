@@ -3,8 +3,8 @@ import random
 import discord
 from datetime import datetime
 
-from Button_Views.Journaling_System_Views.motivation_level import MotivationLevel
-from Button_Views.Journaling_System_Views.task_selection import TaskSelection
+from Button_Views.Daily_Log_View.motivation_level import MotivationLevel
+from Button_Views.Daily_Log_View.task_selection import TaskSelection
 from flask_app import mydb
 
 
@@ -78,7 +78,7 @@ async def get_user_text_feeling(interaction: discord.Interaction):
 
 
 
-async def journalingSystem(interaction: discord.Interaction):
+async def Daily_Log(interaction: discord.Interaction):
     try:
 
         user_text_feeling = await get_user_text_feeling(interaction)
