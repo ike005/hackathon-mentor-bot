@@ -44,7 +44,7 @@ class SelectInterestOptions(discord.ui.View):
                 ephemeral=True
             )
             return  # Exit if the requirement is not met
-        # Disable all buttons after user finishes selection
+
         for item in self.children:
             item.disabled = True
         await interaction.response.edit_message(view=self)  # Update button states for the user
