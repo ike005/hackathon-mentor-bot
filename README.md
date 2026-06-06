@@ -206,7 +206,8 @@ The thermometer check-in is inspired by John Hunter's work in *World Peace And O
 
 ## User flow
 
-[User Flow Diagram (tldraw)](https://www.tldraw.com/s/v2_c_mIoelW-FkU6DonizF8qRQ?d=v230.-740.3166.1844.u3uTLtOXOF0gz0ZSLETkT)
+![User Flow Diagram](./assets/user-flow.png)
+[User Flow Diagram](https://www.tldraw.com/s/v2_c_mIoelW-FkU6DonizF8qRQ?d=v230.-740.3166.1844.u3uTLtOXOF0gz0ZSLETkT)
 
 ## License
 
