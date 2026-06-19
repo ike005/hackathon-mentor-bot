@@ -5,11 +5,6 @@ load_dotenv()
 
 username = os.getenv("MONGO_USERNAME")
 password = os.getenv("MONGO_PASSWORD")
-
-# print(
-#     f"The feeling of the user is {user}"
-# )
-
 url = f"mongodb+srv://{username}:{password}@hackathonbot.96inpog.mongodb.net/?retryWrites=true&w=majority"
 
 
