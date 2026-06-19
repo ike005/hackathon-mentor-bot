@@ -1,7 +1,7 @@
 import discord
 from datetime import datetime
 
-from flask_app import mydb
+from Mongodb_integrations.insert_data_to_mongodb import insert_data_into_profile_collection
 
 class BasicIntroModal(discord.ui.Modal, title="Quick Intro"):
     name = discord.ui.TextInput(
@@ -36,26 +36,16 @@ class BasicIntroModal(discord.ui.Modal, title="Quick Intro"):
         github_link = self.github_link.value
         email = self.email.value
 
-        mycol = mydb["users_new"]
-
-        user_data = {
-            "user_id": str(interaction.user.id),
+        data = {
             "username": str(interaction.user),
             "name": name,
             "age": age,
             "gender": gender,
             "github_link": github_link,
             "email": email,
-            # "created_at": datetime.utcnow()
         }
 
-        mycol.update_one(
-            {"user_id": str(interaction.user.id)},
-            {"$set": user_data},
-            upsert=True
-        )
-
-        # mycol.insert_one(user_data)
+        insert_data_into_profile_collection(interaction.user.id, data)
 
         github_display = (
             f"[GitHub Profile]({github_link})"

@@ -5,7 +5,7 @@ from datetime import datetime
 
 from Button_Views.Daily_Log_View.motivation_level import MotivationLevel
 from Button_Views.Daily_Log_View.task_selection import TaskSelection
-from flask_app import mydb
+from Mongodb_integrations.insert_data_to_mongodb import insert_data_into_daily_log_collection
 
 
 
@@ -90,41 +90,18 @@ async def Daily_Log(interaction: discord.Interaction):
         )
 
         user_feeling = await get_user_motivation_level(interaction)
-        # await interaction.followup.send("You selected:"+ "\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(user_feeling)))
-        #
-        # await interaction.followup.send(f"📝 Reflection saved:\n{user_text_feeling}",ephemeral=True)
-
         user_tasks = await get_user_task_selection(interaction)
-        # await interaction.followup.send("You selected:" + "\n".join(f"{opt}" for opt in user_tasks))
 
-        mycol = mydb["daily_log"]
+
+        data = {
+            "user_feeling": user_feeling,
+            "user_text_feeling": user_text_feeling,
+            "user_tasks": user_tasks,
+        }
+
+        insert_data_into_daily_log_collection(interaction.user.id, data)
 
         today = datetime.now().strftime("%Y-%m-%d")
-
-        mycol.update_one(
-            {
-                "user_id": interaction.user.id,
-            },
-            {
-                "$set": {
-                    f"log_date": today,
-                    f"user_feeling": user_feeling,
-                    f"user_text_feeling": user_text_feeling,
-                    f"user_tasks": user_tasks,
-                }
-            },
-            upsert=True
-        )
-
-        # summary_message = f"""
-        #     Here’s a summary of your log:
-        #     • Feeling: {user_text_feeling}
-        #     • Emotion: {user_feeling}
-        #     • Tasks: {user_tasks}
-        #     {today}
-        #
-        #     If anything looks off, feel free to update it anytime!
-        # """
 
         motivation = user_feeling[0] if user_feeling else "Not specified"
         task_list = "\n".join(f"• {task}" for task in user_tasks)

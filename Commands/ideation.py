@@ -6,7 +6,7 @@ from datetime import datetime
 
 from Button_Views.Ideation_Views.user_interest_option import SelectInterestOptions
 from Button_Views.Ideation_Views.view_more_options import MoreOptionChoice
-from flask_app import mydb
+from Mongodb_integrations.insert_data_to_mongodb import insert_data_into_ideation_collection
 
 
 async def get_user_interests(interaction: discord.Interaction):
@@ -206,22 +206,16 @@ async def Ideation(interaction: discord.Interaction):
     user_techstack = await get_user_techstack_interests(interaction)
     user_tools_utilized = await get_user_possible_tools_utilized(interaction)
 
+    data = {
+        "user_interests": final_choice,
+        "user_reason_for_interests": user_reason_for_interest,
+        "user_possible_project_impact": user_possible_project_impact,
+        "user_techstack_interests": user_techstack,
+        "user_tools_utilized": user_tools_utilized,
+    }
+    insert_data_into_ideation_collection(interaction.user.id, data)
+
     today = datetime.now().strftime("%Y-%m-%d")
-
-    mycol = mydb["brainstorming"]
-
-    mycol.update_one(
-        {
-            "user_id": interaction.user.id,
-        },
-        {
-            "$set": {
-                f"user_interests": final_choice,
-                f"log_date": today,
-            }
-        },
-        upsert=True
-    )
 
     embed = discord.Embed(
         title="🎯 Brainstorming Session Summary",
@@ -237,7 +231,7 @@ async def Ideation(interaction: discord.Interaction):
     embed.add_field(name="💭 Why These Interests?", value=user_reason_for_interest, inline=False)
     embed.add_field(name="🎯 Intended Project Impact", value="\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(user_possible_project_impact)), inline=False)
     embed.add_field(name="Tech Stack", value="\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(user_techstack)), inline=False)
-    embed.add_field(name="🛠 Resources & Tools", value="\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(user_tools_utilized.strip(""))),inline=False)
+    embed.add_field(name="🛠 Resources & Tools", value="\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(user_tools_utilized)),inline=False)
 
     embed.set_footer(
         text="Your brainstorming session has been saved. You can view it anytime."
