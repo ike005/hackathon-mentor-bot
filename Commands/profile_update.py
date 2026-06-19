@@ -1,4 +1,6 @@
 import discord
+from datetime import datetime
+
 from flask_app import mydb
 
 class BasicIntroModal(discord.ui.Modal, title="Quick Intro"):
@@ -55,19 +57,32 @@ class BasicIntroModal(discord.ui.Modal, title="Quick Intro"):
 
         # mycol.insert_one(user_data)
 
-        message = f"""
-        Thanks, {name}! 🎉
-        Here’s a summary of your profile:
-        • Name: {name}  
-        • Age: {age}  
-        • Gender: {gender}  
-        • GitHub: {github_link}  
-        • Email: {email}
-            
-        If anything looks off, feel free to update it anytime!
-        """
+        github_display = (
+            f"[GitHub Profile]({github_link})"
+            if github_link.startswith(("http://", "https://"))
+            else github_link or "—"
+        )
 
-        await interaction.response.send_message(message, ephemeral=True)
+        embed = discord.Embed(
+            title="👤 Profile Summary",
+            description=f"Thanks, **{name}**! 🎉",
+            color=discord.Color.blurple(),
+            timestamp=datetime.now(),
+        )
+        embed.set_author(
+            name=interaction.user.display_name,
+            icon_url=interaction.user.display_avatar.url,
+        )
+        embed.add_field(name="📛 Name", value=name or "—", inline=True)
+        embed.add_field(name="🎂 Age", value=age or "—", inline=True)
+        embed.add_field(name="⚧ Gender", value=gender or "—", inline=True)
+        embed.add_field(name="🔗 GitHub", value=github_display, inline=False)
+        embed.add_field(name="📧 Email", value=email or "—", inline=False)
+        embed.set_footer(
+            text="Your profile has been saved. You can update it anytime if anything looks off."
+        )
+
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 async def Profile_Update(interaction: discord.Interaction):
     await interaction.response.send_modal(BasicIntroModal())

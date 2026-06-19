@@ -90,12 +90,12 @@ async def Daily_Log(interaction: discord.Interaction):
         )
 
         user_feeling = await get_user_motivation_level(interaction)
-        await interaction.followup.send("You selected:"+ "\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(user_feeling)))
-
-        await interaction.followup.send(f"📝 Reflection saved:\n{user_text_feeling}",ephemeral=True)
+        # await interaction.followup.send("You selected:"+ "\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(user_feeling)))
+        #
+        # await interaction.followup.send(f"📝 Reflection saved:\n{user_text_feeling}",ephemeral=True)
 
         user_tasks = await get_user_task_selection(interaction)
-        await interaction.followup.send("You selected:" + "\n".join(f"{opt}" for opt in user_tasks))
+        # await interaction.followup.send("You selected:" + "\n".join(f"{opt}" for opt in user_tasks))
 
         mycol = mydb["daily_log"]
 
@@ -116,7 +116,58 @@ async def Daily_Log(interaction: discord.Interaction):
             upsert=True
         )
 
-        await interaction.followup.send("Your daily journal has been successfully saved!",ephemeral=True)
+        # summary_message = f"""
+        #     Here’s a summary of your log:
+        #     • Feeling: {user_text_feeling}
+        #     • Emotion: {user_feeling}
+        #     • Tasks: {user_tasks}
+        #     {today}
+        #
+        #     If anything looks off, feel free to update it anytime!
+        # """
+
+        motivation = user_feeling[0] if user_feeling else "Not specified"
+        task_list = "\n".join(f"• {task}" for task in user_tasks)
+
+        if "Stressed" in motivation:
+            embed_color = discord.Color.red()
+        elif "Okay" in motivation:
+            embed_color = discord.Color.gold()
+        elif "Good" in motivation:
+            embed_color = discord.Color.green()
+        else:
+            embed_color = discord.Color.from_rgb(87, 242, 135)
+
+        embed = discord.Embed(
+            title="📓 Daily Log Summary",
+            description=f"**Date:** {today}",
+            color=embed_color,
+            timestamp=datetime.now(),
+        )
+        embed.set_author(
+            name=user_display_name,
+            icon_url=interaction.user.display_avatar.url,
+        )
+        embed.add_field(
+            name="💭 Reflection",
+            value=user_text_feeling or "—",
+            inline=False,
+        )
+        embed.add_field(
+            name="🎯 Motivation Level",
+            value=motivation,
+            inline=True,
+        )
+        embed.add_field(
+            name="✅ Priority Tasks",
+            value=task_list or "—",
+            inline=False,
+        )
+        embed.set_footer(
+            text="Your daily log has been saved. You can update it anytime if your priorities change."
+        )
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
     except asyncio.TimeoutError:
         await interaction.channel.send("⌛ You didn’t respond in time.")
