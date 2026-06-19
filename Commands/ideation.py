@@ -15,17 +15,94 @@ async def get_user_interests(interaction: discord.Interaction):
     def check(m: discord.Message):
         return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
 
+    while True:
+        try:
+            msg = await interaction.client.wait_for("message", check=check, timeout=60)
+            choices = [choice.strip() for choice in msg.content.split(",") if choice.strip()]
+
+            if not 2 <= len(choices) <= 4:
+                await interaction.followup.send("❌ Please enter between 2 to 4 interests.")
+                continue
+            return choices
+        except asyncio.TimeoutError:
+            await interaction.followup.send("⌛ You didn’t respond in time.")
+            return []
+
+
+async def get_user_reason_for_interests(interaction: discord.Interaction):
+    await interaction.followup.send(f"Why did you choose these interests, and what makes them personally meaningful to you:")
+
+    def check(m: discord.Message):
+        return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
+
     try:
         msg = await interaction.client.wait_for("message", check=check, timeout=60)
-        choices = msg.content.split(",")
 
-        if not 2 <= len(choices) <= 4:
-            await interaction.followup.send("❌ Please enter between 2 to 4 interests.")
-            return
-        return choices
+        return msg.content
     except asyncio.TimeoutError:
         await interaction.followup.send("⌛ You didn’t respond in time.")
         return []
+
+async def get_user_possible_project_impact(interaction: discord.Interaction):
+    await interaction.followup.send(
+        f"Which industry, community, or audience does this project aim to impact? Please provide a comma-separated list (e.g., Education, Students, Local Communities, Healthcare, Small Businesses)\n ")
+
+    def check(m: discord.Message):
+        return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
+
+    while True:
+        try:
+            msg = await interaction.client.wait_for("message", check=check, timeout=60)
+            choices = [choice.strip() for choice in msg.content.split(",") if choice.strip()]
+
+            if not choices:
+                await interaction.followup.send("❌ Please enter at least 1 industry, community, or audience.")
+                return
+            return choices
+        except asyncio.TimeoutError:
+            await interaction.followup.send("⌛ You didn’t respond in time.")
+            return []
+
+
+async def get_user_techstack_interests(interaction: discord.Interaction):
+    await interaction.followup.send(f"Which technologies do you plan to use for this project? \n Please list them separated by commas (e.g., JavaScript, Python, Flask, React, MongoDB).:")
+
+    def check(m: discord.Message):
+        return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
+
+    while True:
+        try:
+            msg = await interaction.client.wait_for("message", check=check, timeout=60)
+            choices = [choice.strip() for choice in msg.content.split(",") if choice.strip()]
+
+            if not choices:
+                await interaction.followup.send("❌ Please enter at least 1 Tech stack.")
+                return
+            return choices
+        except asyncio.TimeoutError:
+            await interaction.followup.send("⌛ You didn’t respond in time.")
+            return []
+
+
+async def get_user_possible_tools_utilized(interaction: discord.Interaction):
+    await interaction.followup.send(
+        f"While working on this project, which resources or tools do you expect to use when you encounter a roadblock? \n Please enter a comma-separated list (e.g., YouTube, Stack Overflow, AI tools, documentation, Discord communities, GitHub, online tutorials).")
+
+    def check(m: discord.Message):
+        return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
+
+    while True:
+        try:
+            msg = await interaction.client.wait_for("message", check=check, timeout=60)
+            choices = [choice.strip() for choice in msg.content.split(",") if choice.strip()]
+
+            if not choices:
+                await interaction.followup.send("❌ Please enter at least 1 resources or tools you might use.")
+                return
+            return choices
+        except asyncio.TimeoutError:
+            await interaction.followup.send("⌛ You didn’t respond in time.")
+            return []
 
 async def present_options(interaction: discord.Interaction, user_interests, organizer_interests):
     remembered = []
@@ -82,8 +159,12 @@ async def present_options(interaction: discord.Interaction, user_interests, orga
         await interaction.followup.send(f"Select 2-3 options that interest you \n{options_text}", view=view_so)
         await view_so.wait()
 
-        selected = view_so.selected_values
+        # If the user clicked Exit in the view, stop the loop gracefully
+        if getattr(view_so, "exited", False):
+            await interaction.channel.send("ℹ️ Selection flow exited by user. Ending brainstorming options.")
+            break
 
+        selected = view_so.selected_values
 
         if not (2 <= len(selected) <= 3):
             await interaction.channel.send("❌ You must select between 2 and 3 options.")
@@ -120,6 +201,10 @@ async def Ideation(interaction: discord.Interaction):
     user_interests = await get_user_interests(interaction)
 
     final_choice = await present_options(interaction, user_interests, organizer_interests)
+    user_reason_for_interest = await get_user_reason_for_interests(interaction)
+    user_possible_project_impact = await get_user_possible_project_impact(interaction)
+    user_techstack = await get_user_techstack_interests(interaction)
+    user_tools_utilized = await get_user_possible_tools_utilized(interaction)
 
     today = datetime.now().strftime("%Y-%m-%d")
 
@@ -138,6 +223,24 @@ async def Ideation(interaction: discord.Interaction):
         upsert=True
     )
 
-    await interaction.channel.send(
-        "Final remembered interests:\n" + "\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(final_choice))
+    embed = discord.Embed(
+        title="🎯 Brainstorming Session Summary",
+        description=f"**Date:** {today}",
+        color=discord.Color.blurple(),
+        timestamp=datetime.now(),
     )
+    embed.set_author(
+        name=interaction.user.display_name,
+        icon_url=interaction.user.display_avatar.url,
+    )
+    embed.add_field(name="🔍 Selected Interests", value="\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(final_choice)), inline=False)
+    embed.add_field(name="💭 Why These Interests?", value=user_reason_for_interest, inline=False)
+    embed.add_field(name="🎯 Intended Project Impact", value="\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(user_possible_project_impact)), inline=False)
+    embed.add_field(name="Tech Stack", value="\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(user_techstack)), inline=False)
+    embed.add_field(name="🛠 Resources & Tools", value="\n".join(f"{i + 1}. {opt}" for i, opt in enumerate(user_tools_utilized.strip(""))),inline=False)
+
+    embed.set_footer(
+        text="Your brainstorming session has been saved. You can view it anytime."
+    )
+
+    await interaction.channel.send(embed=embed)

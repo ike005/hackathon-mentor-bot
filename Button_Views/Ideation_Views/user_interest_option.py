@@ -6,6 +6,7 @@ class SelectInterestOptions(discord.ui.View):
         # Initialize the selection view with a 60-second timeout
         super().__init__(timeout=60)
         self.selected_values = []  # Store values (option numbers) user has picked
+        self.exited = False        # Tracks whether the user chose to exit early
 
     # Handles what happens when a selection button is clicked
     async def handle_selection(self, interaction: discord.Interaction, value: int, button: discord.ui.Button):
@@ -50,3 +51,21 @@ class SelectInterestOptions(discord.ui.View):
         await interaction.response.edit_message(view=self)  # Update button states for the user
         await interaction.followup.send("🎉 Selection complete!", ephemeral=True)  # Confirm selection to the user
         self.stop()  # End the view and unblock the waiting coroutine
+
+    @discord.ui.button(label='Exit', style=discord.ButtonStyle.danger)
+    async def button_exit(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # Mark as exited so the calling code can stop prompting
+        self.exited = True
+
+        # Disable all buttons in the view
+        for item in self.children:
+            item.disabled = True
+
+        # Update the original message so the buttons appear disabled
+        await interaction.response.edit_message(view=self)
+
+        # Let the user know we've stopped the selection flow
+        await interaction.followup.send("✅ Selection cancelled. Ending this brainstorming round.", ephemeral=True)
+
+        # Stop the view so `view.wait()` in the calling coroutine unblocks
+        self.stop()
