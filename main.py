@@ -463,7 +463,7 @@ async def on_message(message):
 
 @bot.tree.command(name='brainstorm', description="Start a brainstorming season", guild=GUILD_ID)
 @hackathon_channel_only()
-async def brainstormGame(interaction: discord.Interaction):
+async def BrainstormGame(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True,ephemeral=True)
     try:
         await Ideation(interaction)
@@ -477,7 +477,7 @@ async def brainstormGame(interaction: discord.Interaction):
 
 @bot.tree.command(name='log', description="Log today's goal", guild=GUILD_ID)
 @hackathon_channel_only()
-async def journalSystem(interaction: discord.Interaction):
+async def JournalSystem(interaction: discord.Interaction):
     # await interaction.response.defer(thinking=True, ephemeral=True)
 
     try:
