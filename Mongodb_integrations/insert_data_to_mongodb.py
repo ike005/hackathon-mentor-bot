@@ -17,7 +17,7 @@ def insert_data_into_profile_collection(interaction_user_id, data):
 
     collection.update_one(
         {
-            "user_id": interaction_user_id,
+            "user_id": str(interaction_user_id),
         },
         {
             "$set": data
