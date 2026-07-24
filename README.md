@@ -15,13 +15,14 @@ Before you start, make sure you have:
 
 ```
 hackathon-mentor-bot/
-├── main.py              # Bot entry point — run this to start the bot
-├── flask_app.py         # MongoDB connection (used by slash commands)
-├── Commands/            # Slash command handlers (/log, /brainstorm, etc.)
-├── Button_Views/        # Discord button/modal UI components
-├── file_count.py        # Optional script to pull GitHub repo stats into MongoDB
-├── requirements.txt     # Python dependencies
-└── .env                 # Local secrets (you create this — not in git)
+├── main.py                # Bot entry point — run this to start the bot
+├── flask_app.py           # MongoDB connection (used by slash commands)
+├── Commands/              # Slash command handlers (/log, /brainstorm, etc.)
+├── Button_Views/          # Discord button/modal UI components
+├── Mongodb_integrations/  # Contains MongoDB integration for sending data from the discord chat to the mongodb database
+├── file_count.py          # Optional script to pull GitHub repo stats into MongoDB
+├── requirements.txt       # Python dependencies
+└── .env                   # Local secrets (you create this — not in git)
 ```
 
 ## 1. Clone and install dependencies
@@ -43,11 +44,6 @@ pip install -r requirements.txt
 
 **Optional (Conda):** If you prefer Conda, you can use `requirement_conda.yaml` instead, then install any remaining packages from `requirements.txt`.
 
-**Plotly charts:** The `$my_temps` command saves a chart image. If that command fails with an image export error, install Kaleido:
-
-```bash
-pip install kaleido
-```
 
 ## 2. Create a Discord bot
 
@@ -141,25 +137,6 @@ Run these in order in your hackathon channel:
 | `/brainstorm` | Enter 2–4 comma-separated interests, select options via buttons | Bot walks through interest selection and saves to MongoDB `brainstorming` |
 | `/help` | Run anytime | Bot sends the help guide |
 
-### Prefix commands (admin / legacy)
-
-These use the `$` prefix in any channel where the bot can read messages:
-
-| Command | Who can use it | What to test |
-|---------|----------------|--------------|
-| `$hello` | Anyone | Bot replies `Hello!` |
-| `$99` | Anyone | Bot sends a random Brooklyn 99 quote |
-| `$my_temps` | Anyone | Shows thermometer check-in history (if you have responses) |
-| `$schedule` | Server administrators | Interactive flow to schedule one-time or recurring DMs |
-| `$schedule-list` | Server administrators | Lists scheduled jobs |
-| `$schedule-remove <job_id>` | Server administrators | Removes a scheduled job |
-
-### Thermometer check-in
-
-Posting in a specific update channel triggers a DM survey (Function, Elegance, Effort, Resources on a 1–10 scale). Responses are saved under `thermometer_responses/`. Use `$my_temps` to view your history and chart.
-
-> The update channel ID is currently hardcoded in `main.py`. For local testing, you may need to change that ID to match your test channel, or test in the configured channel.
-
 ### Verify data in MongoDB
 
 After running `/profile`, `/log`, or `/brainstorm`, open MongoDB Atlas and confirm documents appear in:
@@ -186,7 +163,6 @@ You may need to update the repository list and MongoDB connection settings insid
 | Slash commands do not appear | Confirm `DISCORD_GUILD` matches your server ID; restart the bot |
 | "This command can only be used in #channel" | Run the command in the channel matching `HACKATHON_CHANNEL_ID` |
 | MongoDB connection errors | Verify `MONGO_USERNAME` / `MONGO_PASSWORD` and Atlas network access |
-| `$my_temps` image export fails | Run `pip install kaleido` |
 | Bot cannot DM users | User must allow DMs from server members |
 
 ## Features overview
@@ -195,20 +171,17 @@ You may need to update the repository list and MongoDB connection settings insid
 - Schedule DMs to attendees by username or role (one-time or recurring)
 - List and remove scheduled jobs
 
-**Hackers can:**
+**Attendees can:**
 - Set up a profile with `/profile`
 - Log daily progress and motivation with `/log`
 - Brainstorm project ideas with `/brainstorm`
 - Complete thermometer check-ins via DM
 - View personal thermometer trends with `$my_temps`
 
-The thermometer check-in is inspired by John Hunter's work in *World Peace And Other 4th-Grade Achievements* (Harper Collins, 2014).
+The thermometer check-in is inspired by John Hunter's work in *World Peace And Other 4th-Grade Achievements* (Harper Collins, 2014) ISBN 9780544290037.
 
 ## User flow
 
 ![User Flow Diagram](./assets/user-flow.png)
 [User Flow Diagram](https://www.tldraw.com/s/v2_c_mIoelW-FkU6DonizF8qRQ?d=v230.-740.3166.1844.u3uTLtOXOF0gz0ZSLETkT)
 
-## License
-
-See the repository for license details.
