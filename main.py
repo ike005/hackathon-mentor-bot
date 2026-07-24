@@ -490,8 +490,6 @@ async def BrainstormGame(interaction: discord.Interaction):
 @bot.tree.command(name='log', description="Log today's goal", guild=GUILD_ID)
 @hackathon_channel_only()
 async def JournalSystem(interaction: discord.Interaction):
-    # await interaction.response.defer(thinking=True, ephemeral=True)
-
     try:
         await Daily_Log(interaction)
     except ValueError as e:
@@ -520,9 +518,8 @@ async def IntroStart(interaction: discord.Interaction):
 
 
 @bot.tree.command(name='profile', description="Start Interactions", guild=GUILD_ID)
-# @hackathon_channel_only()
+@hackathon_channel_only()
 async def InformationStart(interaction: discord.Interaction):
-    # await Intro_and_information(interaction)
     try:
         await Profile_Update(interaction)
     except ValueError as e:
